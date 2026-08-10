@@ -20,13 +20,17 @@ button{width:100%;padding:12px;border:0;background:#eeeae2;color:#111;font-weigh
 <section id="home" class="view active">
 <div class="card"><h2>Автомобиль</h2><div class="grid"><div><div class="small">Автомобиль</div><div id="dashCar" class="stat">—</div></div><div><div class="small">Пробег</div><div id="dashKm" class="stat">0 км</div></div></div></div>
 <div class="card"><h2>Ближайшее обслуживание</h2><div id="reminders"></div></div>
-<div class="tiles"><div class="tile"><div class="small">Расходы</div><div id="dashCost" class="stat">0 ₽</div></div><div class="tile"><div class="small">Топливо</div><div id="dashFuel" class="stat">0 л</div></div></div>
+<div class="tiles"><div class="tile"><div class="small">Расходы</div><div id="dashCost" class="stat">0 €</div></div><div class="tile"><div class="small">Топливо</div><div id="dashFuel" class="stat">0 л</div></div></div>
 <div class="card"><h2>Последние работы</h2><div id="recent"></div></div>
 </section>
 
 <section id="service" class="view">
 <div class="card"><h2>Добавить обслуживание</h2><input id="sDate" type="date"><div class="grid"><input id="sKm" type="number" placeholder="Пробег"><input id="sCost" type="number" step="0.01" placeholder="Стоимость, ₽"></div><input id="sWork" placeholder="Что сделали"><input id="sPart" placeholder="Деталь / бренд / артикул"><input id="sPlace" placeholder="Сервис / мастерская"><textarea id="sNote" placeholder="Комментарий"></textarea><button onclick="addService()">Сохранить обслуживание</button></div>
-<div class="card"><h2>Регламент и напоминания</h2><div class="small">Интервал по километрам и/или времени.</div><input id="rName" placeholder="Например, Масло"><div class="grid"><input id="rKm" type="number" placeholder="Интервал, км"><input id="rMonths" type="number" placeholder="Интервал, месяцев"></div><div class="grid"><input id="rLastKm" type="number" placeholder="Последний пробег"><input id="rLastDate" type="date"></div><input id="rEdit" type="hidden" value="-1"><div class="grid"><button class="secondary" onclick="addReminder()" id="rSave">Добавить регламент</button><button class="secondary" onclick="cancelReminderEdit()" id="rCancel" style="display:none">Отмена</button></div></div>
+<div class="card"><h2>Регламент и напоминания</h2><div class="small">Интервал по километрам и/или времени.</div><input id="rName" placeholder="Например, Масло"><div class="grid"><input id="rKm" type="number" placeholder="Интервал, км"><input id="rMonths" type="number" placeholder="Интервал, месяцев"></div><div class="grid"><input id="rLastKm" type="number" placeholder="Последний пробег"><input id="rLastDate" type="date"></div><input id="rEdit" type="hidden" value="-1">
+<div class="grid">
+<button class="secondary" id="rSave" onclick="addReminder()">Добавить регламент</button>
+<button class="secondary" id="rCancel" onclick="cancelReminderEdit()" style="display:none">Отмена</button>
+</div></div>
 <div class="card"><h2>История обслуживания</h2><div id="serviceList"></div></div>
 </section>
 
@@ -54,17 +58,31 @@ function tab(id,b){document.querySelectorAll(".view").forEach(x=>x.classList.rem
 function saveCar(){db.car={name:$("carName").value.trim(),year:+$("carYear").value||"",km:+$("carKm").value||0,plate:$("carPlate").value.trim(),vin:$("carVin").value.trim(),engine:$("carEngine").value.trim(),fuel:$("carFuel").value.trim(),gear:$("carGear").value.trim()};persist()}
 function addService(){let w=$("sWork").value.trim();if(!w)return alert("Укажи, что было сделано.");db.services.unshift({date:$("sDate").value||new Date().toISOString().slice(0,10),km:+$("sKm").value||0,cost:+$("sCost").value||0,work:w,part:$("sPart").value,place:$("sPlace").value,note:$("sNote").value});db.services.sort((a,b)=>b.date.localeCompare(a.date));persist()}
 function addReminder(){
-let n=$("rName").value.trim();if(!n)return alert("Укажи название.");
+let n=$("rName").value.trim();
+if(!n)return alert("Укажи название.");
 let item={name:n,km:+$("rKm").value||0,months:+$("rMonths").value||0,lastKm:+$("rLastKm").value||0,lastDate:$("rLastDate").value};
 let i=+$("rEdit").value;
-if(i>=0){db.reminders[i]=item}else{db.reminders.push(item)}
-cancelReminderEdit();persist()
+if(i>=0) db.reminders[i]=item; else db.reminders.push(item);
+cancelReminderEdit(); persist()
 }
 function editReminder(i){
-let r=db.reminders[i];$("rName").value=r.name||"";$("rKm").value=r.km||"";$("rMonths").value=r.months||"";$("rLastKm").value=r.lastKm||"";$("rLastDate").value=r.lastDate||"";$("rEdit").value=i;$("rSave").textContent="Сохранить изменения";$("rCancel").style.display="block";document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));$("service").classList.add("active");document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));document.querySelectorAll("nav button")[1].classList.add("active");window.scrollTo({top:0,behavior:"smooth"})
+let r=db.reminders[i];
+$("rName").value=r.name||"";$("rKm").value=r.km||"";$("rMonths").value=r.months||"";
+$("rLastKm").value=r.lastKm||"";$("rLastDate").value=r.lastDate||"";
+$("rEdit").value=i;$("rSave").textContent="Сохранить изменения";$("rCancel").style.display="block";
+document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
+$("service").classList.add("active");
+document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+document.querySelectorAll("nav button")[1].classList.add("active");
+window.scrollTo({top:0,behavior:"smooth"})
 }
 function cancelReminderEdit(){
-$("rEdit").value="-1";$("rName").value="";$("rKm").value="";$("rMonths").value="";$("rLastKm").value="";$("rLastDate").value="";$("rSave").textContent="Добавить регламент";$("rCancel").style.display="none"
+$("rEdit").value="-1";$("rName").value="";$("rKm").value="";$("rMonths").value="";
+$("rLastKm").value="";$("rLastDate").value="";
+$("rSave").textContent="Добавить регламент";$("rCancel").style.display="none"
+}
+function deleteReminder(i){
+if(confirm("Удалить этот регламент?")){db.reminders.splice(i,1);cancelReminderEdit();persist()}
 }
 function addFuel(){let l=+$("fLiters").value||0;if(!l)return alert("Укажи литры.");db.fuel.unshift({date:$("fDate").value||new Date().toISOString().slice(0,10),km:+$("fKm").value||0,liters:l,price:+$("fPrice").value||0,type:$("fType").value});persist()}
 function addTire(){db.tires.unshift({season:$("tSeason").value,brand:$("tBrand").value,size:$("tSize").value,date:$("tDate").value,km:+$("tKm").value||0,depth:+$("tDepth").value||0});persist()}
@@ -74,14 +92,12 @@ function render(){
 $("carName").value=db.car.name||"";$("carYear").value=db.car.year||"";$("carKm").value=db.car.km||"";$("carPlate").value=db.car.plate||"";$("carVin").value=db.car.vin||"";$("carEngine").value=db.car.engine||"";$("carFuel").value=db.car.fuel||"";$("carGear").value=db.car.gear||"";
 $("dashCar").textContent=db.car.name||"Мой автомобиль";$("dashKm").textContent=(db.car.km||0).toLocaleString("ru-RU")+" км";$("dashCost").textContent=db.services.reduce((a,x)=>a+(x.cost||0),0).toFixed(0)+" ₽";$("dashFuel").textContent=db.fuel.reduce((a,x)=>a+x.liters,0).toFixed(1)+" л";
 $("recent").innerHTML=db.services.slice(0,5).map(x=>`<div class="item"><b>${esc(x.work)}</b><br><span class="muted">${esc(x.date)} · ${(x.km||0).toLocaleString("ru-RU")} км</span></div>`).join("")||'<span class="muted">Пока нет записей.</span>';
-$("serviceList").innerHTML=db.services.map((x,i)=>`<div class="item"><b>${esc(x.work)}</b><br><span class="muted">${esc(x.date)} · ${(x.km||0).toLocaleString("ru-RU")} км</span>${x.part?`<br>${esc(x.part)}`:""}${x.place?`<br><span class="small">${esc(x.place)}</span>`:""}${x.cost?`<br><span class="gold">${x.cost}  ₽</span>`:""}<br><button class="danger" onclick="del('services',${i})">Удалить</button></div>`).join("")||'<span class="muted">История пока пустая.</span>';
+$("serviceList").innerHTML=db.services.map((x,i)=>`<div class="item"><b>${esc(x.work)}</b><br><span class="muted">${esc(x.date)} · ${(x.km||0).toLocaleString("ru-RU")} км</span>${x.part?`<br>${esc(x.part)}`:""}${x.place?`<br><span class="small">${esc(x.place)}</span>`:""}${x.cost?`<br><span class="gold">${x.cost} ₽</span>`:""}<br><button class="danger" onclick="del('services',${i})">Удалить</button></div>`).join("")||'<span class="muted">История пока пустая.</span>';
 $("reminders").innerHTML=db.reminders.length?db.reminders.map((r,i)=>`<div class="item"><b>${esc(r.name)}</b> ${rstatus(r)}<br><span class="muted">${r.km?r.km.toLocaleString("ru-RU")+" км":""}${r.months?" · "+r.months+" мес.":""}</span><br><button class="secondary" onclick="editReminder(${i})">Редактировать</button><button class="danger" onclick="deleteReminder(${i})">Удалить</button></div>`).join(""):'<span class="muted">Добавь регламент в разделе ТО.</span>';
-$("fuelList").innerHTML=db.fuel.map(x=>`<div class="item"><b>${x.liters} л</b> · ${x.price?x.price+" ₽/л":"цена не указана"}<br><span class="muted">${esc(x.date)} · ${(x.km||0).toLocaleString("ru-RU")} км · ${esc(x.type)}</span></div>`).join("")||'<span class="muted">Заправок пока нет.</span>';
+$("fuelList").innerHTML=db.fuel.map(x=>`<div class="item"><b>${x.liters} л</b> · ${x.price?x.price+" €/л":"цена не указана"}<br><span class="muted">${esc(x.date)} · ${(x.km||0).toLocaleString("ru-RU")} км · ${esc(x.type)}</span></div>`).join("")||'<span class="muted">Заправок пока нет.</span>';
 let liters=db.fuel.reduce((a,x)=>a+x.liters,0);$("fuelLiters").textContent=liters.toFixed(1);let fs=db.fuel.filter(x=>x.km).sort((a,b)=>a.km-b.km);$("fuelAvg").textContent=fs.length>1?((fs.reduce((a,x)=>a+x.liters,0)/(fs.at(-1).km-fs[0].km))*100).toFixed(1)+" л/100 км":"—";
 $("tireList").innerHTML=db.tires.map(x=>`<div class="item"><b>${esc(x.season)} · ${esc(x.brand)}</b><br>${esc(x.size)}${x.depth?" · "+x.depth+" мм":""}<br><span class="muted">${esc(x.date)} · ${(x.km||0).toLocaleString("ru-RU")} км</span></div>`).join("")||'<span class="muted">Комплектов пока нет.</span>';
 }
-function del(k,i){if(confirm("Удалить запись?")){db[k].splice(i,1);persist()}}
-function deleteReminder(i){if(confirm("Удалить этот регламент?")){db.reminders.splice(i,1);if(+$("rEdit").value===i)cancelReminderEdit();persist()}}
-function exportData(){let b=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="moy-avto-backup.json";a.click()}function importData(e){let r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);db.reminders??=[];db.fuel??=[];db.tires??=[];persist();alert("Данные восстановлены")}catch{alert("Ошибка файла")}};r.readAsText(e.target.files[0])}
+function del(k,i){if(confirm("Удалить запись?")){db[k].splice(i,1);persist()}}function exportData(){let b=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="moy-avto-backup.json";a.click()}function importData(e){let r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);db.reminders??=[];db.fuel??=[];db.tires??=[];persist();alert("Данные восстановлены")}catch{alert("Ошибка файла")}};r.readAsText(e.target.files[0])}
 $("sDate").value=new Date().toISOString().slice(0,10);$("fDate").value=$("sDate").value;$("tDate").value=$("sDate").value;render();if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
 </script></body></html>
