@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#080a0d">
-<title>Мой Авто 0.2</title>
+<title>Мой Авто 0.3</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:#080a0d;color:#f4f4f1;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif}
@@ -50,9 +50,20 @@ textarea{min-height:75px;resize:vertical}.row{display:grid;grid-template-columns
 </head>
 <body>
 <div id="app">
-<div class="top"><div class="brand"><div class="mark">◉</div><div><b>Мой Авто</b><span>Personal Garage</span></div></div><button class="icon" id="addCar">＋</button></div>
+<div class="top"><div class="brand"><div class="mark">◉</div><div><b>Мой Авто</b><span>Personal Garage · 0.3</span></div></div><button class="icon" id="addCar">＋</button></div>
 <div id="content"></div>
 </div>
+
+
+<div class="modal" id="noteModal"><div class="sheet"><h2>Импорт из заметки</h2>
+<p>Скопируй сюда текст из приложения «Заметки» на iPhone. Можно в свободном формате — приложение попробует найти даты, пробег, обслуживание и стоимость.</p>
+<textarea id="noteInput" style="min-height:180px" placeholder="Например:
+15.03.2024 — 72 000 км — замена масла + фильтр — 120 €
+10.08.2024 — 78 500 км — тормозные колодки — 240 €
+20.01.2025 — 82 000 км — масло 5W-30"></textarea>
+<div class="actions"><button class="cancel" onclick="closeModal('noteModal')">Отмена</button><button class="save" onclick="importNotes()">Разобрать заметку</button></div>
+<div id="parsePreview" style="margin-top:14px"></div>
+</div></div>
 
 <div class="modal" id="carModal"><div class="sheet"><h2>Добавить автомобиль</h2>
 <label>Марка и модель</label><input id="carMake" placeholder="BMW 530d">
@@ -114,13 +125,63 @@ function historyRows(c){
  if(!rec.length)return `<div class="empty"><strong>История пока пустая</strong>Добавьте старые работы и пробеги — даже если они были до установки приложения.</div>`;
  return rec.map(r=>`<div class="history"><div class="date">${esc((r.date||'').split('-').reverse().join('.'))}</div><div class="hmain"><b>${esc(r.type)}</b><div class="km">${fmtKm(r.km)} км · ${esc(r.text)}</div>${r.note?`<div class="km">${esc(r.note)}</div>`:''}</div>${r.cost?`<div class="cost">${fmtKm(r.cost)} €</div>`:''}</div>`).join('');
 }
+
+function parseDate(s){
+  let m=s.match(/\b(20\d{2})[.\-\/](\d{1,2})[.\-\/](\d{1,2})\b/);
+  if(m)return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
+  m=s.match(/\b(\d{1,2})[.\-\/](\d{1,2})[.\-\/](20\d{2})\b/);
+  if(m)return `${m[3]}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
+  return new Date().toISOString().slice(0,10);
+}
+function guessType(s){
+ const x=s.toLowerCase();
+ if(/масл|oil/.test(x))return 'Замена масла';
+ if(/воздушн/.test(x))return 'Воздушный фильтр';
+ if(/салонн/.test(x))return 'Салонный фильтр';
+ if(/колод/.test(x))return 'Тормозные колодки';
+ if(/диск/.test(x))return 'Тормозные диски';
+ if(/свеч/.test(x))return 'Свечи';
+ if(/шин|резин/.test(x))return 'Шины';
+ if(/грм|цепь|ремень/.test(x))return 'Ремень ГРМ / цепь';
+ return 'Другое';
+}
+function parseNoteLine(line){
+ const kmMatch=line.match(/(\d[\d\s.,]{2,})\s*(?:км|km)\b/i);
+ const costMatch=line.match(/(\d[\d\s.,]*)\s*(?:€|евро|eur|руб|₽|\$)/i);
+ const km=kmMatch?Number(kmMatch[1].replace(/[^\d]/g,'')):0;
+ const cost=costMatch?Number(costMatch[1].replace(/\s/g,'').replace(',','.').replace(/[^\d.]/g,'')):0;
+ const date=parseDate(line);
+ let clean=line.replace(/\b(20\d{2})[.\-\/]\d{1,2}[.\-\/]\d{1,2}\b/g,'')
+               .replace(/\b\d{1,2}[.\-\/]\d{1,2}[.\-\/]20\d{2}\b/g,'')
+               .replace(/\d[\d\s.,]{2,}\s*(?:км|km)\b/ig,'')
+               .replace(/\d[\d\s.,]*\s*(?:€|евро|eur|руб|₽|\$)/ig,'')
+               .replace(/^[\s\-–—:;]+|[\s\-–—:;]+$/g,'').trim();
+ const type=guessType(line);
+ const text=clean||type;
+ return {id:Date.now()+Math.random(),date,km,type,text,cost,next:0,note:'Импортировано из заметки'};
+}
+function importNotes(){
+ const c=car(); if(!c)return;
+ const raw=document.querySelector('#noteInput').value.trim();
+ if(!raw){alert('Вставьте текст из Заметок.');return}
+ const lines=raw.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+ const rows=lines.map(parseNoteLine).filter(r=>r.km||r.text);
+ if(!rows.length){alert('Не удалось найти записи. Попробуйте формат: 15.03.2024 — 72 000 км — замена масла — 120 €');return}
+ document.querySelector('#parsePreview').innerHTML=`<div class="notice">Найдено записей: <b>${rows.length}</b>. После сохранения они появятся в истории.</div><div style="max-height:180px;overflow:auto">${rows.map(r=>`<div class="history"><div class="date">${r.date.split('-').reverse().join('.')}</div><div class="hmain"><b>${esc(r.type)}</b><div class="km">${fmtKm(r.km)} км · ${esc(r.text)}</div></div>${r.cost?`<div class="cost">${fmtKm(r.cost)} €</div>`:''}</div>`).join('')}</div><div class="actions"><button class="cancel" onclick="document.querySelector('#parsePreview').innerHTML=''">Очистить</button><button class="save" onclick='commitImported(${JSON.stringify(rows).replace(/</g,"\\u003c")})'>Добавить в историю</button></div>`;
+}
+function commitImported(rows){
+ const c=car(); c.records=[...(c.records||[]),...rows]; c.records.sort((a,b)=>String(b.date).localeCompare(String(a.date))); persist(); closeModal('noteModal'); document.querySelector('#noteInput').value=''; document.querySelector('#parsePreview').innerHTML=''; tab='history'; render();
+}
+
 function render(){
  if(!cars.length){content.innerHTML=`<div class="hero"><div class="eyebrow">Ваш гараж</div><div class="carname">Создайте профиль автомобиля</div><div class="muted">После этого можно занести всю историю обслуживания, включая данные за годы до установки приложения.</div><button class="primary" onclick="openModal('carModal')">＋ Добавить автомобиль</button></div><div class="empty"><strong>История не потеряется</strong>Старые чеки, пробеги и замены можно занести вручную.</div>`;return}
  const c=car(),rec=c.records||[],last=rec.length?rec[0]:null;
  content.innerHTML=`<div class="hero"><div class="eyebrow">Мой автомобиль</div><div class="carname">${esc(c.make)}</div><div class="muted">${esc(c.year||'')} · ${esc(c.engine||'Двигатель не указан')}</div><div class="mileage"><strong>${fmtKm(c.km)}</strong><span>км текущий пробег</span></div></div>
  <div class="grid"><div class="stat"><small>Записей истории</small><b class="green">${rec.length}</b></div><div class="stat"><small>Последняя работа</small><b class="${last?'gold':'red'}">${last?esc(last.type).replace('Замена ',''):'Нет'}</b></div></div>
  <div class="tabs"><button class="tab ${tab==='service'?'active':''}" onclick="setTab('service')">Обслуживание</button><button class="tab ${tab==='history'?'active':''}" onclick="setTab('history')">История</button></div>
- ${tab==='service'?`<div class="notice">💡 Вносите старые работы с их реальным пробегом. Приложение использует их при расчёте следующих замен.</div><div class="section"><h2>Контроль обслуживания</h2><button class="link" onclick="openModal('recordModal')">＋ Запись</button></div>${serviceRows(c)}`:`<div class="section"><h2>Вся история</h2><button class="link" onclick="openModal('recordModal')">＋ Добавить</button></div>${historyRows(c)}<div class="importbox"><b>Импорт CSV / Excel</b>Подготовим загрузку старого журнала в следующем обновлении.</div>`}
+ ${tab==='service'?`<div class="notice">💡 Вносите старые работы с их реальным пробегом. Приложение использует их при расчёте следующих замен.</div><div class="section"><h2>Контроль обслуживания</h2><button class="link" onclick="openModal('recordModal')">＋ Запись</button></div>${serviceRows(c)}`:`<div class="section"><h2>Вся история</h2><button class="link" onclick="openModal('recordModal')">＋ Добавить</button></div>${historyRows(c)}
+<div class="importbox"><b>📋 Импорт из «Заметок»</b>Скопируйте старую историю из iPhone и вставьте одним текстом — приложение разберёт записи автоматически.<button class="primary" onclick="openModal('noteModal')">Вставить заметку</button></div>
+<div class="importbox"><b>📊 Импорт CSV / Excel</b>Подготовим загрузку таблиц в следующем обновлении.</div>`}
  <button class="primary" onclick="openModal('recordModal')">＋ Добавить запись</button>`;
 }
 function setTab(t){tab=t;render()}
