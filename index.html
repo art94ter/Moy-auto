@@ -1,0 +1,43 @@
+<!doctype html><html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#080a0d"><title>Мой Авто</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:#080a0d;color:#f5f5f2;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif}body{min-height:100dvh;display:flex;justify-content:center}
+#app{width:min(100%,620px);min-height:100dvh;padding:18px 16px 28px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.brand{display:flex;gap:10px;align-items:center}.mark{width:39px;height:39px;border:1px solid #3a3e42;border-radius:12px;display:grid;place-items:center;background:linear-gradient(145deg,#20242a,#0f1114);font-size:19px}.brand b{font-size:19px}.brand span{display:block;color:#777e86;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;margin-top:2px}
+.icon{width:42px;height:42px;border-radius:13px;background:#15181c;border:1px solid #292d31;color:#fff;font-size:22px}.hero{background:linear-gradient(145deg,#171b20,#0f1215);border:1px solid #2a2f34;border-radius:26px;padding:22px;box-shadow:0 20px 50px #0005;margin-bottom:16px}
+.eyebrow{color:#8e959d;font-size:11px;letter-spacing:1.4px;text-transform:uppercase}.carname{font-size:29px;font-weight:850;letter-spacing:-1px;margin:6px 0 2px}.year{color:#858c94;font-size:14px}.mileage{margin-top:20px;display:flex;align-items:end;justify-content:space-between}.mileage strong{font-size:36px;letter-spacing:-1.5px}.mileage span{color:#8c939b;font-size:13px;padding-bottom:6px}.progress{height:5px;background:#282d32;border-radius:9px;margin-top:14px;overflow:hidden}.progress i{display:block;height:100%;width:72%;background:#d8b56a}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:16px}.stat{background:#111419;border:1px solid #252a2f;border-radius:19px;padding:16px}.stat small{color:#747c84;font-size:11px}.stat b{display:block;font-size:20px;margin-top:7px}.gold{color:#d8b56a}.green{color:#6fd39b}
+.section{display:flex;justify-content:space-between;align-items:center;margin:20px 2px 10px}.section h2{font-size:18px;margin:0}.section button{background:none;border:0;color:#d8b56a;font-weight:800}
+.service{display:flex;align-items:center;gap:13px;background:#111419;border:1px solid #252a2f;border-radius:18px;padding:14px;margin-bottom:9px}.svcicon{width:42px;height:42px;border-radius:13px;background:#1b2025;display:grid;place-items:center;font-size:19px}.svc{flex:1}.svc b{font-size:15px}.svc small{display:block;color:#747c84;margin-top:4px;font-size:11px}.status{font-size:11px;font-weight:800;padding:7px 9px;border-radius:9px;background:#17241d;color:#70d59c}.warn{background:#292217;color:#e1bc6b}
+.primary{width:100%;border:0;border-radius:17px;background:#e9e5dc;color:#101214;padding:16px;font-size:16px;font-weight:900;margin-top:8px}.modal{position:fixed;inset:0;background:#000a;display:none;align-items:end;justify-content:center;z-index:10;padding:12px}.modal.show{display:flex}.sheet{width:min(100%,600px);background:#15191e;border:1px solid #30353a;border-radius:26px 26px 18px 18px;padding:22px;box-shadow:0 -20px 60px #0008}.sheet h2{margin:0 0 16px;font-size:23px}label{display:block;color:#8d959d;font-size:12px;margin:12px 0 6px}input{width:100%;padding:14px;border-radius:13px;border:1px solid #30353b;background:#0c0f12;color:#fff;font-size:16px;outline:none}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.actions{display:flex;gap:9px;margin-top:18px}.actions button{flex:1;padding:14px;border-radius:14px;font-weight:900;border:0}.cancel{background:#24292e;color:#fff}.save{background:#e9e5dc;color:#101214}.empty{padding:32px 12px;text-align:center;color:#7f878f}.empty strong{display:block;color:#dfe1df;font-size:19px;margin-bottom:7px}
+</style></head><body><div id="app">
+<div class="top"><div class="brand"><div class="mark">◉</div><div><b>Мой Авто</b><span>Personal Garage</span></div></div><button class="icon" id="addTop">＋</button></div>
+<div id="content"></div></div>
+<div class="modal" id="modal"><div class="sheet"><h2>Добавить автомобиль</h2>
+<label>Марка и модель</label><input id="make" placeholder="Например, BMW 530d">
+<div class="row"><div><label>Год</label><input id="year" type="number" placeholder="2021"></div><div><label>Пробег, км</label><input id="mileage" type="number" placeholder="85000"></div></div>
+<label>Двигатель <span style="color:#555">необязательно</span></label><input id="engine" placeholder="3.0 Diesel">
+<div class="actions"><button class="cancel" id="cancel">Отмена</button><button class="save" id="save">Сохранить</button></div></div></div>
+<script>
+const $=s=>document.querySelector(s),content=$("#content"),modal=$("#modal"),make=$("#make"),year=$("#year"),mileage=$("#mileage"),engine=$("#engine");
+let cars=JSON.parse(localStorage.getItem("moy_avto_cars")||"[]");
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+function render(){
+ if(!cars.length){content.innerHTML='<div class="hero"><div class="eyebrow">Ваш гараж</div><div class="carname">Добавьте первый автомобиль</div><div class="year">Все данные будут храниться на этом устройстве.</div><button class="primary" onclick="openModal()">＋ Добавить автомобиль</button></div><div class="empty"><strong>Ваш автомобиль — под контролем</strong>Обслуживание, сроки и ближайшие работы будут в одном месте.</div>';return}
+ const c=cars[0],km=Number(c.mileage||0);
+ content.innerHTML=`<div class="hero"><div class="eyebrow">Мой автомобиль</div><div class="carname">${esc(c.make)}</div><div class="year">${esc(c.year||"")} · ${esc(c.engine||"Двигатель не указан")}</div><div class="mileage"><strong>${km.toLocaleString("ru-RU")}</strong><span>км текущий пробег</span></div><div class="progress"><i></i></div></div>
+<div class="grid"><div class="stat"><small>Состояние</small><b class="green">В норме</b></div><div class="stat"><small>Ближайшее</small><b class="gold">Масло</b></div></div>
+<div class="section"><h2>Обслуживание</h2><button onclick="alert('В следующей версии здесь можно будет добавлять свои работы.')">Изменить</button></div>
+${svc("🛢️","Моторное масло","Следующая замена через 7 500 км","НОРМА","ok")}
+${svc("🌬️","Воздушный фильтр","Следующая замена через 14 000 км","НОРМА","ok")}
+${svc("❄️","Салонный фильтр","Рекомендуется через 3 месяца","СКОРО","warn")}
+${svc("🛑","Тормозные колодки","Последняя проверка — 4 000 км назад","НОРМА","ok")}
+<button class="primary" onclick="openModal()">＋ Добавить автомобиль</button>`;
+}
+function svc(i,n,d,s,cl){return `<div class="service"><div class="svcicon">${i}</div><div class="svc"><b>${n}</b><small>${d}</small></div><span class="status ${cl==="warn"?"warn":""}">${s}</span></div>`}
+function openModal(){modal.classList.add("show");make.focus()} function closeModal(){modal.classList.remove("show");make.value=year.value=mileage.value=engine.value=""}
+$("#addTop").onclick=openModal;$("#cancel").onclick=closeModal;
+$("#save").onclick=()=>{if(!make.value.trim()||!mileage.value){alert("Укажите марку/модель и пробег.");return}cars.unshift({make:make.value.trim(),year:year.value,mileage:mileage.value,engine:engine.value.trim()});localStorage.setItem("moy_avto_cars",JSON.stringify(cars));closeModal();render()};
+render();
+</script></body></html>
