@@ -1,9 +1,1 @@
-{
-  "name": "Мой Авто 2.2.1",
-  "short_name": "Мой Авто",
-  "start_url": ".",
-  "display": "standalone",
-  "background_color": "#090b0f",
-  "theme_color": "#090b0f",
-  "lang": "ru"
-}
+{"name":"Мой Авто 2.4","short_name":"Мой Авто","start_url":".","display":"standalone","background_color":"#07090d","theme_color":"#07090d","lang":"ru"}

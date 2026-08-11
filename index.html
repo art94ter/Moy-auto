@@ -1,6 +1,6 @@
 <!doctype html><html lang="ru"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#090b0f"><link rel="manifest" href="manifest.webmanifest"><title>Мой Авто 2.2.1</title>
+<meta name="theme-color" content="#090b0f"><link rel="manifest" href="manifest.webmanifest"><title>Мой Авто 2.4</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#090b0f;color:#f5f7fa;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif}
 main{max-width:820px;margin:auto;padding:18px 15px 90px}.top{padding:22px 4px 10px}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.2em;color:#d7b46b}h1{font-size:42px;line-height:1;margin:8px 0}.muted{color:#8e98a6}
@@ -13,11 +13,192 @@ button{width:100%;padding:12px;border:0;background:#eeeae2;color:#111;font-weigh
 .tile{background:#0d1116;border:1px solid #272e38;border-radius:17px;padding:14px}.stat{font-size:28px;font-weight:850}.item{border-top:1px solid #29313a;padding:14px 0}.item:first-child{border-top:0}.gold{color:#d7b46b}.small{font-size:13px;color:#8e98a6}
 .status{display:inline-block;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:800}.ok{background:#193322;color:#7bd58b}.soon{background:#3a2b18;color:#f0b45b}.late{background:#3b2020;color:#ef7971}
 @media(max-width:520px){.grid{grid-template-columns:1fr}.stat{font-size:24px}}
-</style></head><body><main>
-<header class="top"><div class="eyebrow">PERSONAL GARAGE · 2.2.1</div><h1>Мой Авто</h1><div class="muted">Всё о машине — в одном месте.</div></header>
+</style>
+<style id="premium-theme">
+:root{
+  --bg:#080a0f;--panel:#11151d;--panel2:#151a23;--line:rgba(255,255,255,.08);
+  --text:#f4f6fa;--muted:#8e98a8;--accent:#d6ad68;--accent2:#f0cc8b;
+  --danger:#c96f70;--success:#78b997;--shadow:0 18px 55px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+body{
+  background:
+    radial-gradient(900px 500px at 50% -180px,rgba(214,173,104,.13),transparent 65%),
+    radial-gradient(700px 500px at 100% 20%,rgba(78,105,145,.08),transparent 65%),
+    var(--bg)!important;
+  color:var(--text)!important;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Inter,system-ui,sans-serif!important;
+  letter-spacing:-.01em;
+}
+header{
+  background:rgba(8,10,15,.78)!important;
+  border-bottom:1px solid var(--line)!important;
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+}
+header h1{font-size:28px!important;letter-spacing:-.045em!important}
+.card,.item{
+  background:linear-gradient(145deg,rgba(21,26,35,.96),rgba(14,18,25,.96))!important;
+  border:1px solid var(--line)!important;
+  border-radius:22px!important;
+  box-shadow:var(--shadow)!important;
+}
+.card{padding:22px!important;margin-bottom:16px!important}
+.card h2{font-size:20px!important;letter-spacing:-.03em!important}
+.item{box-shadow:none!important;border-radius:16px!important;padding:15px!important}
+button{
+  border:1px solid rgba(214,173,104,.24)!important;
+  border-radius:14px!important;
+  background:linear-gradient(180deg,#dcb678,#b99152)!important;
+  color:#17120b!important;
+  font-weight:700!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.2)!important;
+  transition:transform .18s ease,filter .18s ease,box-shadow .18s ease!important;
+}
+button:hover{filter:brightness(1.06);transform:translateY(-1px)}
+button:active{transform:translateY(1px);box-shadow:none!important}
+button.secondary{
+  background:rgba(255,255,255,.055)!important;
+  color:var(--text)!important;
+  border-color:rgba(255,255,255,.1)!important;
+}
+button.danger{
+  background:rgba(201,111,112,.12)!important;
+  color:#efaaaa!important;
+  border-color:rgba(201,111,112,.25)!important;
+}
+input,select,textarea{
+  background:rgba(255,255,255,.045)!important;
+  color:var(--text)!important;
+  border:1px solid rgba(255,255,255,.1)!important;
+  border-radius:13px!important;
+  min-height:46px!important;
+  outline:none!important;
+  transition:border-color .18s ease,box-shadow .18s ease,background .18s ease!important;
+}
+textarea{min-height:110px!important}
+input:focus,select:focus,textarea:focus{
+  border-color:rgba(214,173,104,.65)!important;
+  box-shadow:0 0 0 4px rgba(214,173,104,.09)!important;
+  background:rgba(255,255,255,.065)!important;
+}
+label{color:#aab2bf!important;font-size:13px!important;font-weight:600!important}
+.muted,.small{color:var(--muted)!important}
+.gold{color:var(--accent2)!important;font-weight:750}
+nav{
+  background:rgba(8,10,15,.82)!important;
+  border-top:1px solid var(--line)!important;
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+}
+nav button{
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  color:#727c8c!important;border-radius:12px!important;
+}
+nav button.active{color:var(--accent2)!important;background:rgba(214,173,104,.09)!important}
+.view.active{animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:.55;transform:translateY(5px)}to{opacity:1;transform:none}}
+hr{border-color:var(--line)!important}
+::-webkit-scrollbar{width:7px}::-webkit-scrollbar-thumb{background:#303744;border-radius:20px}
+@media(max-width:600px){
+  .card{padding:18px!important;border-radius:20px!important}
+  header h1{font-size:25px!important}
+  button{min-height:46px}
+}
+</style>
+
+
+<style id="premium-dashboard">
+:root{
+ --p-bg:#07090d;--p-card:#10141b;--p-card2:#151a22;--p-line:rgba(255,255,255,.075);
+ --p-gold:#d7b16d;--p-gold2:#f0cf91;--p-white:#f7f8fb;--p-muted:#8993a3;
+}
+body{
+ background:
+ radial-gradient(900px 430px at 50% -120px,rgba(215,177,109,.17),transparent 66%),
+ radial-gradient(700px 500px at 100% 55%,rgba(62,91,130,.09),transparent 70%),
+ var(--p-bg)!important;
+}
+header{background:rgba(7,9,13,.68)!important;backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px)}
+.hero-car{
+ position:relative;overflow:hidden;border-radius:28px!important;
+ min-height:220px;padding:25px!important;
+ background:
+ linear-gradient(125deg,rgba(255,255,255,.08),rgba(255,255,255,.018)),
+ radial-gradient(500px 240px at 100% 0,rgba(215,177,109,.16),transparent 70%),
+ #10141b!important;
+ border:1px solid rgba(255,255,255,.1)!important;
+ box-shadow:0 24px 70px rgba(0,0,0,.36)!important;
+}
+.hero-car:after{
+ content:"";position:absolute;width:230px;height:230px;right:-80px;bottom:-110px;
+ border:1px solid rgba(215,177,109,.18);border-radius:50%;
+ box-shadow:0 0 0 34px rgba(215,177,109,.035),0 0 0 68px rgba(215,177,109,.025);
+}
+.hero-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.18em;color:var(--p-gold2);font-weight:750}
+.hero-name{font-size:30px;font-weight:780;letter-spacing:-.045em;margin:7px 0 2px}
+.hero-meta{color:var(--p-muted);font-size:13px}
+.hero-km{font-size:38px;font-weight:780;letter-spacing:-.05em;margin-top:22px}
+.hero-km span{font-size:14px;color:var(--p-muted);font-weight:600;letter-spacing:0}
+.premium-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:14px 0}
+.premium-stat{
+ padding:16px;border-radius:18px;background:rgba(255,255,255,.045);
+ border:1px solid var(--p-line);
+}
+.premium-stat b{display:block;font-size:20px;letter-spacing:-.03em}
+.premium-stat span{display:block;margin-top:4px;color:var(--p-muted);font-size:11px}
+.progress-wrap{margin-top:18px}
+.progress-label{display:flex;justify-content:space-between;color:var(--p-muted);font-size:12px;margin-bottom:8px}
+.progress{height:8px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
+.progress i{display:block;height:100%;width:var(--progress,35%);background:linear-gradient(90deg,var(--p-gold),var(--p-gold2));border-radius:99px;box-shadow:0 0 18px rgba(215,177,109,.28)}
+.section-title{display:flex;align-items:end;justify-content:space-between;margin:25px 3px 11px}
+.section-title h3{margin:0;font-size:18px;letter-spacing:-.035em}
+.section-title span{font-size:11px;color:var(--p-muted)}
+.quick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
+.quick{
+ padding:17px;border-radius:18px;background:linear-gradient(145deg,#151a22,#0f1319);
+ border:1px solid var(--p-line);text-align:left;cursor:pointer;
+}
+.quick strong{display:block;margin-top:12px;font-size:14px}
+.quick small{color:var(--p-muted);font-size:11px}
+.quick .qicon{
+ width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+ background:rgba(215,177,109,.1);color:var(--p-gold2);font-size:18px;
+}
+@media(max-width:600px){
+ .hero-car{min-height:205px;padding:21px!important}
+ .hero-name{font-size:27px}.hero-km{font-size:34px}
+ .premium-stat-grid{gap:8px}.premium-stat{padding:13px}
+ .quick-grid{gap:9px}
+}
+</style>
+
+</head><body><main>
+<header class="top"><div class="eyebrow">PERSONAL GARAGE · 2.4</div><h1>Мой Авто</h1><div class="muted">Всё о машине — в одном месте.</div></header>
 <nav><button class="active" onclick="tab('home',this)">Главная</button><button onclick="tab('service',this)">ТО</button><button onclick="tab('fuel',this)">Топливо</button><button onclick="tab('tires',this)">Шины</button><button onclick="tab('data',this)">Данные</button></nav>
 
 <section id="home" class="view active">
+<section class="hero-car" id="premiumHero">
+ <div class="hero-kicker">MY AUTO · PREMIUM GARAGE</div>
+ <div class="hero-name" id="premiumCarName">Мой автомобиль</div>
+ <div class="hero-meta" id="premiumCarMeta">Ваш личный автомобильный профиль</div>
+ <div class="hero-km" id="premiumCarKm">0 <span>км</span></div>
+ <div class="progress-wrap">
+  <div class="progress-label"><span>До ближайшего регламента</span><span id="premiumNext">—</span></div>
+  <div class="progress"><i id="premiumProgress"></i></div>
+ </div>
+</section>
+<div class="premium-stat-grid">
+ <div class="premium-stat"><b id="premiumCost">0 ₽</b><span>расходы на обслуживание</span></div>
+ <div class="premium-stat"><b id="premiumServices">0</b><span>работ выполнено</span></div>
+ <div class="premium-stat"><b id="premiumFuel">0 л</b><span>топлива записано</span></div>
+</div>
+<div class="section-title"><h3>Быстрые действия</h3><span>одним касанием</span></div>
+<div class="quick-grid">
+ <div class="quick" onclick="tab('service',document.querySelectorAll('nav button')[1])"><div class="qicon">🔧</div><strong>Добавить ТО</strong><small>Записать обслуживание</small></div>
+ <div class="quick" onclick="tab('fuel',document.querySelectorAll('nav button')[2])"><div class="qicon">⛽</div><strong>Заправка</strong><small>Добавить расход топлива</small></div>
+ <div class="quick" onclick="tab('data',document.querySelectorAll('nav button')[4])"><div class="qicon">🚗</div><strong>Автомобиль</strong><small>Профиль и автомобили</small></div>
+ <div class="quick" onclick="tab('service',document.querySelectorAll('nav button')[1])"><div class="qicon">⏱</div><strong>Регламенты</strong><small>Проверить обслуживание</small></div>
+</div>
+
 <div class="card"><h2>Автомобиль</h2><div class="grid"><div><div class="small">Автомобиль</div><div id="dashCar" class="stat">—</div></div><div><div class="small">Пробег</div><div id="dashKm" class="stat">0 км</div></div></div></div>
 <div class="card"><h2>Ближайшее обслуживание</h2><div id="reminders"></div></div>
 <div class="tiles"><div class="tile"><div class="small">Расходы</div><div id="dashCost" class="stat">0 €</div></div><div class="tile"><div class="small">Топливо</div><div id="dashFuel" class="stat">0 л</div></div></div>
@@ -104,7 +285,17 @@ function importNotes(){let n=0;for(let s of $("notes").value.split(/\n+/).map(x=
 function render(){
 let c=activeCar();if(!c)return;
 $("carName").value=c.car.name||"";$("carYear").value=c.car.year||"";$("carKm").value=c.car.km||"";$("carPlate").value=c.car.plate||"";$("carVin").value=c.car.vin||"";$("carEngine").value=c.car.engine||"";$("carFuel").value=c.car.fuel||"";$("carGear").value=c.car.gear||"";
-$("dashCar").textContent=c.car.name||"Мой автомобиль";$("dashKm").textContent=(c.car.km||0).toLocaleString("ru-RU")+" км";
+$("dashCar").textContent=c.car.name||"Мой автомобиль";$("premiumCarName").textContent=c.car.name||"Мой автомобиль";
+$("premiumCarMeta").textContent=[c.car.year,c.car.engine,c.car.plate].filter(Boolean).join(" · ")||"Ваш личный автомобильный профиль";
+$("premiumCarKm").innerHTML=(c.car.km||0).toLocaleString("ru-RU")+' <span>км</span>';
+$("premiumCost").textContent=c.services.reduce((a,x)=>a+(x.cost||0),0).toLocaleString("ru-RU")+" ₽";
+$("premiumServices").textContent=c.services.length;
+$("premiumFuel").textContent=c.fuel.reduce((a,x)=>a+(x.liters||0),0).toFixed(1)+" л";
+let pr=c.reminders.map(r=>r.km).filter(k=>k>0&&k>(c.car.km||0)).sort((a,b)=>a-b)[0];
+$("premiumNext").textContent=pr?pr.toLocaleString("ru-RU")+" км":"нет регламента";
+let pp=pr?Math.max(5,Math.min(100,100-(((pr-(c.car.km||0))/Math.max(pr,1))*100))):8;
+$("premiumProgress").style.setProperty("--progress",pp+"%");
+$("dashKm").textContent=(c.car.km||0).toLocaleString("ru-RU")+" км";
 $("dashCost").textContent=c.services.reduce((a,x)=>a+(x.cost||0),0).toFixed(0)+" ₽";$("dashFuel").textContent=c.fuel.reduce((a,x)=>a+x.liters,0).toFixed(1)+" л";
 $("recent").innerHTML=c.services.slice(0,5).map(x=>`<div class="item"><b>${esc(x.work)}</b><br><span class="muted">${esc(x.date)} · ${(x.km||0).toLocaleString("ru-RU")} км</span></div>`).join("")||'<span class="muted">Пока нет записей.</span>';
 $("serviceList").innerHTML=c.services.map((x,i)=>`<div class="item"><b>${esc(x.work)}</b><br><span class="muted">${esc(x.date)} · ${(x.km||0).toLocaleString("ru-RU")} км</span>${x.part?`<br>${esc(x.part)}`:""}${x.place?`<br><span class="small">${esc(x.place)}</span>`:""}${x.cost?`<br><span class="gold">${x.cost} ₽</span>`:""}<br><button class="danger" onclick="del('services',${i})">Удалить</button></div>`).join("")||'<span class="muted">История пока пустая.</span>';
