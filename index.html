@@ -171,8 +171,14 @@ header{background:rgba(7,9,13,.68)!important;backdrop-filter:blur(28px);-webkit-
 }
 </style>
 
-<style id="auth3">#authScreen{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:22px;background:radial-gradient(800px 450px at 50% 0,rgba(215,177,109,.16),transparent 65%),#07090d;overflow:auto}.auth-box{width:min(440px,100%);padding:30px 24px;border-radius:30px;background:linear-gradient(145deg,rgba(21,26,35,.98),rgba(11,14,20,.98));border:1px solid rgba(255,255,255,.09);box-shadow:0 30px 100px rgba(0,0,0,.55)}.auth-mark{font-size:11px;font-weight:850;letter-spacing:.2em;color:#f0cc8b;text-transform:uppercase}.auth-title{font-size:36px;line-height:1;margin:9px 0 8px;letter-spacing:-.055em}.auth-sub{color:#8e98a8;line-height:1.45;margin-bottom:24px}.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;background:rgba(255,255,255,.045);border-radius:14px;margin-bottom:18px}.auth-tabs button{margin:0;background:transparent!important;color:#8e98a8!important;border:0!important;box-shadow:none!important}.auth-tabs button.active{background:#eee6d8!important;color:#17120b!important}.auth-error{display:none;margin:10px 0;padding:11px 12px;border-radius:12px;background:rgba(201,111,112,.12);border:1px solid rgba(201,111,112,.22);color:#efaaaa;font-size:13px}.auth-foot{margin-top:15px;text-align:center;color:#707a89;font-size:12px}.auth-user{display:flex;align-items:center;gap:8px;color:#aeb6c3;font-size:12px}.auth-user button{width:auto;margin:0;padding:7px 10px}#appShell.authHidden{display:none}</style></head><body><div id="authScreen"><div class="auth-box"><div class="auth-mark">MY AUTO · 3.0.1</div><div class="auth-title">Мой Авто</div><div class="auth-sub">Ваш личный автомобильный гараж.<br>Сохраняйте историю и синхронизируйте её между устройствами.</div><div class="auth-tabs"><button id="loginTab" class="active" onclick="showAuth('login')">Войти</button><button id="signupTab" onclick="showAuth('signup')">Создать аккаунт</button></div><div id="authError" class="auth-error"></div><div id="authLogin"><input id="authEmail" type="email" placeholder="E-mail" autocomplete="email"><input id="authPassword" type="password" placeholder="Пароль" autocomplete="current-password"><button onclick="loginUser()">Войти</button><button class="secondary" onclick="resetPassword()">Забыли пароль?</button></div><div id="authSignup" style="display:none"><input id="authName" placeholder="Ваше имя" autocomplete="name"><input id="authEmail2" type="email" placeholder="E-mail" autocomplete="email"><input id="authPassword2" type="password" placeholder="Пароль (минимум 6 символов)" autocomplete="new-password"><button onclick="signupUser()">Создать аккаунт</button></div><div class="auth-foot">Ваши данные принадлежат вашему аккаунту. Доступ к ним защищается правилами базы данных.</div></div></div><div id="appShell"><main>
-<header class="top"><div class="eyebrow">PERSONAL GARAGE · 3.0.1</div><h1>Мой Авто</h1><div class="muted">Всё о машине — в одном месте.</div></header>
+<style id="auth3">#authScreen{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:22px;background:radial-gradient(800px 450px at 50% 0,rgba(215,177,109,.16),transparent 65%),#07090d;overflow:auto}.auth-box{width:min(440px,100%);padding:30px 24px;border-radius:30px;background:linear-gradient(145deg,rgba(21,26,35,.98),rgba(11,14,20,.98));border:1px solid rgba(255,255,255,.09);box-shadow:0 30px 100px rgba(0,0,0,.55)}.auth-mark{font-size:11px;font-weight:850;letter-spacing:.2em;color:#f0cc8b;text-transform:uppercase}.auth-title{font-size:36px;line-height:1;margin:9px 0 8px;letter-spacing:-.055em}.auth-sub{color:#8e98a8;line-height:1.45;margin-bottom:24px}.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;background:rgba(255,255,255,.045);border-radius:14px;margin-bottom:18px}.auth-tabs button{margin:0;background:transparent!important;color:#8e98a8!important;border:0!important;box-shadow:none!important}.auth-tabs button.active{background:#eee6d8!important;color:#17120b!important}.auth-error{display:none;margin:10px 0;padding:11px 12px;border-radius:12px;background:rgba(201,111,112,.12);border:1px solid rgba(201,111,112,.22);color:#efaaaa;font-size:13px}.auth-foot{margin-top:15px;text-align:center;color:#707a89;font-size:12px}.auth-user{display:flex;align-items:center;gap:8px;color:#aeb6c3;font-size:12px}.auth-user button{width:auto;margin:0;padding:7px 10px}#appShell.authHidden{display:none}</style><style id="account31">
+.cloud-status{float:right;color:#78b997;font-size:10px;letter-spacing:.04em}
+.account-card{border-color:rgba(215,177,109,.16)}
+.account-line{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.account-line input{margin:0;max-width:60%}
+#accountSyncText{margin:4px 0 12px}
+</style></head><body><div id="authScreen"><div class="auth-box"><div class="auth-mark">MY AUTO · 3.0.2</div><div class="auth-title">Мой Авто</div><div class="auth-sub">Ваш личный автомобильный гараж.<br>Сохраняйте историю и синхронизируйте её между устройствами.</div><div class="auth-tabs"><button id="loginTab" class="active" onclick="showAuth('login')">Войти</button><button id="signupTab" onclick="showAuth('signup')">Создать аккаунт</button></div><div id="authError" class="auth-error"></div><div id="authLogin"><input id="authEmail" type="email" placeholder="E-mail" autocomplete="email"><input id="authPassword" type="password" placeholder="Пароль" autocomplete="current-password"><button onclick="loginUser()">Войти</button><button class="secondary" onclick="resetPassword()">Забыли пароль?</button></div><div id="authSignup" style="display:none"><input id="authName" placeholder="Ваше имя" autocomplete="name"><input id="authEmail2" type="email" placeholder="E-mail" autocomplete="email"><input id="authPassword2" type="password" placeholder="Пароль (минимум 6 символов)" autocomplete="new-password"><button onclick="signupUser()">Создать аккаунт</button></div><div class="auth-foot">Ваши данные принадлежат вашему аккаунту. Доступ к ним защищается правилами базы данных.</div></div></div><div id="appShell"><main>
+<header class="top"><div class="eyebrow">PERSONAL GARAGE · 3.1 <span id="cloudStatus" class="cloud-status">● облако</span></div><h1>Мой Авто</h1><div class="muted">Всё о машине — в одном месте.</div></header>
 <nav><button class="active" onclick="tab('home',this)">Главная</button><button onclick="tab('service',this)">ТО</button><button onclick="tab('fuel',this)">Топливо</button><button onclick="tab('tires',this)">Шины</button><button onclick="tab('data',this)">Данные</button></nav>
 
 <section id="home" class="view active">
@@ -227,6 +233,14 @@ header{background:rgba(7,9,13,.68)!important;backdrop-filter:blur(28px);-webkit-
 </section>
 
 <section id="data" class="view">
+<div class="card account-card"><h2>Личный кабинет</h2>
+<div class="small">Ваш аккаунт и облачная синхронизация</div>
+<div class="account-line"><span>E-mail</span><b id="accountEmail">—</b></div>
+<div class="account-line"><span>Имя</span><input id="accountName" placeholder="Ваше имя"></div>
+<div class="grid"><button onclick="saveAccountName()">Сохранить имя</button><button class="secondary" onclick="syncNow()">Синхронизировать</button></div>
+<div id="accountSyncText" class="small">Данные синхронизируются автоматически.</div>
+<button class="danger" onclick="logoutUser()">Выйти из аккаунта</button>
+</div>
 <div class="card"><h2>Мои автомобили</h2>
 <select id="carSelect" onchange="switchCar(this.value)"></select>
 <div class="grid"><button onclick="createCar()">+ Добавить автомобиль</button><button class="danger" onclick="removeActiveCar()">Удалить текущий</button></div>
@@ -238,21 +252,77 @@ header{background:rgba(7,9,13,.68)!important;backdrop-filter:blur(28px);-webkit-
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const KEY="moy-avto-3.0.1";
+const KEY="moy-avto-3.1";
 const SUPABASE_URL='https://rimssvnrcpnemeiwptxu.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_RjG_mMHnoSt7TpQEyUpaQw_MlK6kNL_';
 const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 let currentUser=null;
 function showAuth(mode){$("authLogin").style.display=mode==='login'?'block':'none';$("authSignup").style.display=mode==='signup'?'block':'none';$("loginTab").classList.toggle('active',mode==='login');$("signupTab").classList.toggle('active',mode==='signup');$("authError").style.display='none'}
 function authMsg(msg){$("authError").textContent=msg;$("authError").style.display='block'}
-async function signupUser(){const email=$("authEmail2").value.trim(),password=$("authPassword2").value,name=$("authName").value.trim();if(!email||password.length<6)return authMsg('Укажи e-mail и пароль не короче 6 символов.');const {data,error}=await supa.auth.signUp({email,password,options:{data:{name}}});if(error)return authMsg(error.message);if(data.session)await startApp(data.user);else authMsg('Аккаунт создан. Проверь почту и подтверди e-mail.')}
+async function signupUser(){const email=$("authEmail2").value.trim(),password=$("authPassword2").value,name=$("authName").value.trim();if(!email||password.length<6)return authMsg('Укажи e-mail и пароль не короче 6 символов.');const {data,error}=await supa.auth.signUp({email,password,options:{data:{name},emailRedirectTo:location.origin+location.pathname}});if(error)return authMsg(error.message);if(data.session)await startApp(data.user);else authMsg('Аккаунт создан. Проверь почту и подтверди e-mail.')}
 async function loginUser(){const {data,error}=await supa.auth.signInWithPassword({email:$("authEmail").value.trim(),password:$("authPassword").value});if(error)return authMsg(error.message);await startApp(data.user)}
 async function resetPassword(){const email=$("authEmail").value.trim();if(!email)return authMsg('Сначала введи e-mail.');const {error}=await supa.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error)return authMsg(error.message);authMsg('Письмо для восстановления отправлено.')}
+function cloudStatus(text,ok=true){const el=$("cloudStatus");if(el){el.textContent="● "+text;el.style.color=ok?"#78b997":"#d98b8b"}const t=$("accountSyncText");if(t)t.textContent=text}
 async function logoutUser(){await supa.auth.signOut();location.reload()}
-async function cloudLoad(user){const {data,error}=await supa.from('garage_state').select('data').eq('user_id',user.id).maybeSingle();if(error){console.warn(error);return false}if(data?.data){try{db=typeof data.data==='string'?JSON.parse(data.data):data.data;migrateCars();localStorage.setItem(KEY,JSON.stringify(db));return true}catch(e){console.warn(e)}}return false}
-let cloudTimer;async function cloudSave(){if(!currentUser)return;clearTimeout(cloudTimer);cloudTimer=setTimeout(async()=>{const {error}=await supa.from('garage_state').upsert({user_id:currentUser.id,data:db,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)console.warn('Cloud save:',error)},350)}
-async function startApp(user){currentUser=user;$("authScreen").style.display='none';$("appShell").classList.remove('authHidden');$("userChip") && ($("userChip").innerHTML='<span>'+esc(user.user_metadata?.name||user.email||'')+'</span><button class="secondary" onclick="logoutUser()">Выйти</button>');await cloudLoad(user);render();cloudSave()}
+async function cloudLoad(user){
+ cloudStatus("загрузка…",true);
+ const {data,error}=await supa.from('garage_state').select('data,updated_at').eq('user_id',user.id).maybeSingle();
+ if(error){console.warn(error);cloudStatus("ошибка облака",false);return false}
+ if(data?.data){
+  try{
+   db=typeof data.data==='string'?JSON.parse(data.data):data.data;
+   migrateCars();normalizeDb();
+   localStorage.setItem(KEY,JSON.stringify(db));
+   cloudStatus("синхронизировано",true);
+   return true
+  }catch(e){console.warn(e);cloudStatus("ошибка данных",false);return false}
+ }
+ cloudStatus("новый аккаунт — сохраняем данные",true);
+ return false
+}
+let cloudTimer;
+async function cloudSave(immediate=false){
+ if(!currentUser)return false;
+ clearTimeout(cloudTimer);
+ const save=async()=>{
+  cloudStatus("сохранение…",true);
+  const {error}=await supa.from('garage_state').upsert(
+   {user_id:currentUser.id,data:db,updated_at:new Date().toISOString()},
+   {onConflict:'user_id'}
+  );
+  if(error){console.warn('Cloud save:',error);cloudStatus("ошибка сохранения",false);return false}
+  cloudStatus("синхронизировано",true);
+  return true
+ };
+ if(immediate)return await save();
+ cloudTimer=setTimeout(save,350);
+}
+async function syncNow(){await cloudSave(true);render()}
+async function saveAccountName(){
+ if(!currentUser)return;
+ const name=$("accountName").value.trim();
+ const {data,error}=await supa.auth.updateUser({data:{name}});
+ if(error)return alert(error.message);
+ if(data?.user)currentUser=data.user;
+ $("userChip").innerHTML='<span>'+esc(name||currentUser.email||'')+'</span><button class="secondary" onclick="logoutUser()">Выйти</button>';
+ cloudStatus("профиль сохранён",true);
+}
+async function startApp(user){
+ if(currentUser)return;
+ currentUser=user;
+ $("authScreen").style.display='none';
+ $("appShell").classList.remove('authHidden');
+ const name=user.user_metadata?.name||'';
+ $("userChip") && ($("userChip").innerHTML='<span>'+esc(name||user.email||'')+'</span><button class="secondary" onclick="logoutUser()">Выйти</button>');
+ if($("accountEmail"))$("accountEmail").textContent=user.email||"—";
+ if($("accountName"))$("accountName").value=name;
+ const loaded=await cloudLoad(user);
+ if(!loaded)await cloudSave(true);
+ render();
+}
+async function handleAuthRedirect(){try{const code=new URLSearchParams(location.search).get('code');if(code){const {data,error}=await supa.auth.exchangeCodeForSession(code);if(error)authMsg('Ссылка подтверждения недействительна или уже использована. Запроси новое письмо.');else if(data.session&&!currentUser)await startApp(data.session.user);history.replaceState({},document.title,location.pathname);}}catch(e){console.warn(e)}}
 supa.auth.onAuthStateChange(async(event,session)=>{if(session&&!currentUser)await startApp(session.user)});
+handleAuthRedirect();
 let db=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem("moy-avto-v1")||'{"car":{},"services":[],"reminders":[],"fuel":[],"tires":[]}');
 function migrateCars(){
  if(Array.isArray(db.cars)){db.cars.forEach(c=>{c.car??={};c.services??=[];c.reminders??=[];c.fuel??=[];c.tires??=[]});db.activeCarId??=db.cars[0]?.id||null;return}
@@ -309,6 +379,9 @@ function rstatus(r){let cur=activeCar().car.km||0;if(r.km&&r.lastKm){let left=r.
 function importNotes(){let n=0;for(let s of $("notes").value.split(/\n+/).map(x=>x.trim()).filter(Boolean)){let p=s.split("|").map(x=>x.trim());if(p.length>=3){activeCar().services.push({date:p[0],km:+(p[1]||"").replace(/\D/g,"")||0,work:p[2],cost:+(p[3]||"").replace(",","." )||0,part:"",place:"",note:""});n++}}activeCar().services.sort((a,b)=>b.date.localeCompare(a.date));persist();$("notes").value="";alert("Импортировано записей: "+n)}
 function render(){
 let c=activeCar();if(!c)return;
+if($("accountEmail")&&currentUser)$("accountEmail").textContent=currentUser.email||"—";
+if($("accountName")&&currentUser)$("accountName").value=currentUser.user_metadata?.name||"";
+
 $("carName").value=c.car.name||"";$("carYear").value=c.car.year||"";$("carKm").value=c.car.km||"";$("carPlate").value=c.car.plate||"";$("carVin").value=c.car.vin||"";$("carEngine").value=c.car.engine||"";$("carFuel").value=c.car.fuel||"";$("carGear").value=c.car.gear||"";
 $("dashCar").textContent=c.car.name||"Мой автомобиль";$("premiumCarName").textContent=c.car.name||"Мой автомобиль";
 $("premiumCarMeta").textContent=[c.car.year,c.car.engine,c.car.plate].filter(Boolean).join(" · ")||"Ваш личный автомобильный профиль";
@@ -335,6 +408,6 @@ function createCar(){let c=newCar();db.cars.push(c);db.activeCarId=c.id;persist(
 function switchCar(id){if(db.cars.some(c=>c.id===id)){db.activeCarId=id;persist()}}
 function removeActiveCar(){if(db.cars.length<=1)return alert("Нельзя удалить единственный автомобиль.");let c=activeCar();if(confirm("Удалить "+(c.car.name||"этот автомобиль")+" и всю его историю?")){db.cars=db.cars.filter(x=>x.id!==c.id);db.activeCarId=db.cars[0].id;persist()}}
 function del(k,i){let c=activeCar();if(confirm("Удалить запись?")){c[k].splice(i,1);persist()}}
-function exportData(){let b=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="moy-avto-backup.json";a.click()}function importData(e){let r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);db.reminders??=[];db.fuel??=[];db.tires??=[];persist();alert("Данные восстановлены")}catch{alert("Ошибка файла")}};r.readAsText(e.target.files[0])}
+function exportData(){let b=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="moy-avto-backup.json";a.click()}function importData(e){let r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);migrateCars();normalizeDb();persist();alert("Данные восстановлены")}catch{alert("Ошибка файла")}};r.readAsText(e.target.files[0])}
 $("sDate").value=new Date().toISOString().slice(0,10);$("fDate").value=$("sDate").value;$("tDate").value=$("sDate").value;$("appShell").classList.add("authHidden");if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");supa.auth.getSession().then(({data})=>{if(data.session)startApp(data.session.user)});
 </script></div></body></html>
