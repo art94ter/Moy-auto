@@ -260,7 +260,7 @@ const APP_VERSION="3.5";
 const userKey=()=>currentUser?KEY+"_"+currentUser.id:null;
 const SUPABASE_URL='https://rimssvnrcpnemeiwptxu.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_RjG_mMHnoSt7TpQEyUpaQw_MlK6kNL_';
-const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{flowType:'implicit',autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}});
 let currentUser=null;
 let garageOwnerId=null;
 let garageReady=false;
@@ -348,7 +348,7 @@ async function startApp(user){
   if(generation!==authGeneration||!currentUser||currentUser.id!==user.id||!loaded.ok)return;
   render();
 }
-async function handleAuthRedirect(){try{const params=new URLSearchParams(location.search);const code=params.get('code');if(code){const {error}=await supa.auth.exchangeCodeForSession(code);if(error)authMsg('Ссылка восстановления недействительна или уже использована.');else{showAuth('recovery');authMsg('Придумай новый пароль.');}history.replaceState({},document.title,location.pathname);return;}const hash=location.hash?new URLSearchParams(location.hash.slice(1)):null;if(hash?.get('type')==='recovery'){showAuth('recovery');authMsg('Придумай новый пароль.');}}catch(e){console.warn(e)}}
+async function handleAuthRedirect(){try{const params=new URLSearchParams(location.search);const hash=location.hash?new URLSearchParams(location.hash.slice(1)):null;const code=params.get('code');const isRecovery=params.get('type')==='recovery'||hash?.get('type')==='recovery'||hash?.has('access_token');if(code){const {error}=await supa.auth.exchangeCodeForSession(code);if(error){authMsg('Ссылка восстановления открыта в другом браузере. Запроси новое письмо и открой ссылку в том же браузере.');return;}showAuth('recovery');authMsg('Придумай новый пароль.');history.replaceState({},document.title,location.pathname);return;}if(hash?.get('access_token')&&hash?.get('refresh_token')){const {error}=await supa.auth.setSession({access_token:hash.get('access_token'),refresh_token:hash.get('refresh_token')});if(error){authMsg(error.message);return;}showAuth('recovery');authMsg('Придумай новый пароль.');return;}if(isRecovery){showAuth('recovery');authMsg('Придумай новый пароль.');}}catch(e){console.warn(e);authMsg('Не удалось открыть восстановление. Запроси новое письмо.')}}
 supa.auth.onAuthStateChange((event,session)=>{
   if(event==='SIGNED_OUT'){authGeneration++;resetGarageState();currentUser=null;return}
   if(event==='PASSWORD_RECOVERY'){showAuth('recovery');authMsg('Придумай новый пароль.');return}
@@ -443,5 +443,5 @@ function switchCar(id){if(db.cars.some(c=>c.id===id)){db.activeCarId=id;persist(
 function removeActiveCar(){if(db.cars.length<=1)return alert("Нельзя удалить единственный автомобиль.");let c=activeCar();if(confirm("Удалить "+(c.car.name||"этот автомобиль")+" и всю его историю?")){db.cars=db.cars.filter(x=>x.id!==c.id);db.activeCarId=db.cars[0].id;persist()}}
 function del(k,i){let c=activeCar();if(confirm("Удалить запись?")){c[k].splice(i,1);persist()}}
 function exportData(){let b=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="moy-avto-backup.json";a.click()}function importData(e){let r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);migrateCars();normalizeDb();persist();alert("Данные восстановлены")}catch{alert("Ошибка файла")}};r.readAsText(e.target.files[0])}
-$("sDate").value=new Date().toISOString().slice(0,10);$("fDate").value=$("sDate").value;$("tDate").value=$("sDate").value;$("appShell").classList.add("authHidden");if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");supa.auth.getSession().then(({data})=>{if(data.session)startApp(data.session.user)});
+$("sDate").value=new Date().toISOString().slice(0,10);$("fDate").value=$("sDate").value;$("tDate").value=$("sDate").value;$("appShell").classList.add("authHidden");if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");supa.auth.getSession().then(({data})=>{const hash=location.hash?new URLSearchParams(location.hash.slice(1)):null;const recovery=location.search.includes('code=')||location.search.includes('type=recovery')||hash?.get('type')==='recovery'||hash?.has('access_token');if(recovery&&data.session){showAuth('recovery');authMsg('Придумай новый пароль.');}else if(data.session)startApp(data.session.user)});
 </script></div></body></html>
