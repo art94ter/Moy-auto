@@ -1,13 +1,11 @@
 name: Fix login flow
 on:
-  workflow_dispatch:
   push:
     branches: [main]
 permissions:
   contents: write
 jobs:
   patch:
-    if: ${{ !contains(github.event.head_commit.message, 'Fix login flow') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,48 +13,19 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
-          p = Path('index.html')
-          s = p.read_text(encoding='utf-8')
-          old = '''async function loginUser(){const email=$("authEmail").value.trim();const password=$("authPassword").value;if(!email||!password)return authMsg('Введи e-mail и пароль.');authMsg('Выполняется вход…');const {data,error}=await supa.auth.signInWithPassword({email,password});if(error){console.error('LOGIN ERROR',error);return authMsg(error.message||'Не удалось войти.')}if(data?.user){$("authError").style.display='none';await startApp(data.user)}}'''
-          new = '''async function loginUser(){const email=$("authEmail").value.trim();const password=$("authPassword").value;if(!email||!password)return authMsg('Введи e-mail и пароль.');authMsg('Выполняется вход…');try{const {data,error}=await supa.auth.signInWithPassword({email,password});if(error){console.error('LOGIN ERROR',error);return authMsg(error.message||'Не удалось войти.')}if(data?.user){$("authError").style.display='none';await startApp(data.user)}}catch(e){console.error('LOGIN EXCEPTION',e);authMsg(e?.message||'Не удалось войти.')}}'''
-          if old not in s: raise SystemExit('loginUser marker not found')
-          s = s.replace(old,new,1)
-          old2 = '''async function startApp(user){
-  if(!user?.id)return;
-  if(currentUser?.id===user.id && garageReady)return;
-  const generation=++authGeneration;
-  clearTimeout(cloudTimer);cloudTimer=null;
-  currentUser=user;
-  resetGarageState();
-  currentUser=user;
-  const loaded=await cloudLoad(user,generation);
-  if(generation!==authGeneration||!currentUser||currentUser.id!==user.id||!loaded.ok)return;
-  render();
-}'''
-          new2 = '''async function startApp(user){
-  if(!user?.id)return;
-  if(currentUser?.id===user.id && garageReady)return;
-  const generation=++authGeneration;
-  clearTimeout(cloudTimer);cloudTimer=null;
-  currentUser=user;
-  $("authScreen").style.display='none';
-  $("appShell").classList.remove('authHidden');
-  resetGarageState();
-  currentUser=user;
-  try{await cloudLoad(user,generation)}catch(e){console.error('CLOUD LOAD EXCEPTION',e)}
-  if(generation!==authGeneration||!currentUser||currentUser.id!==user.id)return;
-  garageReady=true;
-  render();
-}'''
-          if old2 not in s: raise SystemExit('startApp marker not found')
-          s = s.replace(old2,new2,1)
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          old='async function startApp(user){\n  if(!user?.id)return;\n  if(currentUser?.id===user.id && garageReady)return;\n  const generation=++authGeneration;\n  clearTimeout(cloudTimer);cloudTimer=null;\n  currentUser=user;\n  resetGarageState();\n  currentUser=user;\n  const loaded=await cloudLoad(user,generation);\n  if(generation!==authGeneration||!currentUser||currentUser.id!==user.id||!loaded.ok)return;\n  render();\n}'
+          new='async function startApp(user){\n  if(!user?.id)return;\n  if(currentUser?.id===user.id && garageReady)return;\n  const generation=++authGeneration;\n  clearTimeout(cloudTimer);cloudTimer=null;\n  currentUser=user;\n  $("authScreen").style.display="none";\n  $("appShell").classList.remove("authHidden");\n  resetGarageState();\n  currentUser=user;\n  try{await cloudLoad(user,generation)}catch(e){console.error("CLOUD LOAD EXCEPTION",e)}\n  if(generation!==authGeneration||!currentUser||currentUser.id!==user.id)return;\n  garageReady=true;\n  render();\n}'
+          if old not in s: raise SystemExit('startApp marker not found')
+          s=s.replace(old,new,1)
           p.write_text(s,encoding='utf-8')
-      - name: Commit patch and remove workflow
+      - name: Commit and remove workflow
         shell: bash
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           rm -f .github/workflows/fix-login-flow.yml
           git add index.html .github/workflows/fix-login-flow.yml
-          git commit -m "Fix login flow"
+          git commit -m 'Fix login flow'
           git push
