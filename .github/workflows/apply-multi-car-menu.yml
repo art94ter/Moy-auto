@@ -1,0 +1,81 @@
+name: Apply multi-car menu
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-multi-car-menu.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update index.html
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          marker = 'top-garage-menu-v1'
+          if marker in s:
+              print('Multi-car menu already applied')
+              raise SystemExit(0)
+
+          old_nav = '<nav><button class="active" onclick="tab(\'home\',this)">Главная</button><button onclick="tab(\'service\',this)">ТО</button><button onclick="tab(\'fuel\',this)">Топливо</button><button onclick="tab(\'tires\',this)">Шины</button><button onclick="tab(\'data\',this)">Данные</button></nav>'
+          new_nav = '<nav><button class="active" onclick="tab(\'home\',this)">Главная</button><button onclick="tab(\'service\',this)">ТО</button><button onclick="tab(\'fuel\',this)">Топливо</button><button onclick="tab(\'tires\',this)">Шины</button><button onclick="tab(\'data\',this)">Данные</button><button onclick="openGarage(this)">Автомобили</button></nav>'
+          if old_nav not in s:
+              raise SystemExit('Navigation anchor not found')
+          s = s.replace(old_nav, new_nav, 1)
+
+          garage = '''<!-- top-garage-menu-v1 -->
+          <section class="card top-garage-menu" id="topGarageMenu">
+           <div class="top-garage-head"><div><h2>Мои автомобили</h2><div class="small">Переключайся между автомобилями в один клик</div></div><span class="garage-badge">ГАРАЖ</span></div>
+           <select id="topCarSelect" onchange="switchCar(this.value)"></select>
+           <div class="grid"><button onclick="createCar()">+ Добавить автомобиль</button><button class="danger" onclick="removeActiveCar()">Удалить текущий</button></div>
+          </section>
+          '''
+          anchor = '</header>\n<nav>'
+          if anchor not in s:
+              raise SystemExit('Header anchor not found')
+          s = s.replace(anchor, '</header>\n'+garage+'<nav>', 1)
+
+          css = '''\n<style id="top-garage-menu-style">
+          .top-garage-menu{margin-top:10px!important;padding:16px!important;border-color:rgba(215,177,109,.18)!important}
+          .top-garage-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+          .top-garage-head h2{margin:0 0 4px!important}
+          .garage-badge{font-size:10px;font-weight:800;letter-spacing:.16em;color:#f0cf91;padding:7px 9px;border-radius:999px;background:rgba(215,177,109,.09);border:1px solid rgba(215,177,109,.18)}
+          .top-garage-menu select{margin:0 0 7px!important;font-weight:700}
+          @media(max-width:520px){.top-garage-head{align-items:flex-start}.garage-badge{font-size:9px}}
+          </style>\n          '''
+          s = s.replace('</head>', css+'</head>', 1)
+
+          old_render = '$("carSelect").innerHTML=db.cars.map(x=>`<option value="${x.id}" ${x.id===db.activeCarId?"selected":""}>${esc(x.car.name||"Новый автомобиль")}</option>`).join("");'
+          new_render = old_render + '\n$("topCarSelect").innerHTML=db.cars.map(x=>`<option value="${x.id}" ${x.id===db.activeCarId?"selected":""}>${esc(x.car.name||"Новый автомобиль")}</option>`).join("");'
+          if old_render not in s:
+              raise SystemExit('Render anchor not found')
+          s = s.replace(old_render, new_render, 1)
+
+          helper = '''\nfunction openGarage(b){tab("data",b);setTimeout(()=>{const el=$("topGarageMenu");if(el)el.scrollIntoView({behavior:"smooth",block:"start"})},30)}\n'''
+          anchor_js = 'function createCar(){'
+          if anchor_js not in s:
+              raise SystemExit('JS anchor not found')
+          s = s.replace(anchor_js, helper+'\n'+anchor_js, 1)
+
+          p.write_text(s, encoding='utf-8')
+          print('Updated index.html')
+          PY
+
+      - name: Commit changes and remove temporary workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/apply-multi-car-menu.yml
+          git add index.html
+          git commit -m 'Show multi-car garage menu' || exit 0
+          git push
