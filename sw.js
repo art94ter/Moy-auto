@@ -1,4 +1,80 @@
-const CACHE="moy-avto-3.5";
-self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(["./","./index.html","./manifest.webmanifest"]))));
-self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));
-self.addEventListener("fetch",e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+const CACHE="moy-avto-3.6";
+const MARK="MY_AUTO_RECOVERY_PATCH_V1";
+const SUPABASE_URL="https://rimssvnrcpnemeiwptxu.supabase.co";
+const SUPABASE_KEY="sb_publishable_RjG_mMHnoSt7TpQEyUpaQw_MlK6kNL_";
+const PATCH_SCRIPT=`<script id="${MARK}">
+(()=>{
+  const URL="${SUPABASE_URL}",KEY="${SUPABASE_KEY}";
+  const html=`+"`"+`<div id="myAutoRecovery" style="display:none;position:fixed;inset:0;z-index:100000;background:radial-gradient(800px 450px at 50% 0,rgba(215,177,109,.16),transparent 65%),#07090d;place-items:center;padding:22px;overflow:auto"><div style="width:min(440px,100%);padding:30px 24px;border-radius:30px;background:linear-gradient(145deg,rgba(21,26,35,.99),rgba(11,14,20,.99));border:1px solid rgba(255,255,255,.09);box-shadow:0 30px 100px rgba(0,0,0,.55);color:#f4f6fa;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',Arial,sans-serif"><div style="font-size:11px;font-weight:850;letter-spacing:.2em;color:#f0cc8b;text-transform:uppercase">MY AUTO · ВОССТАНОВЛЕНИЕ</div><div style="font-size:32px;line-height:1;margin:10px 0 8px;letter-spacing:-.05em">Новый пароль</div><div style="color:#8e98a8;line-height:1.45;margin-bottom:22px">Введите новый пароль для вашего аккаунта.</div><input id="myAutoNewPassword" type="password" autocomplete="new-password" placeholder="Новый пароль" style="width:100%;box-sizing:border-box;padding:13px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:#fff;border-radius:13px;margin:5px 0 10px;min-height:48px;font-size:16px"><input id="myAutoNewPassword2" type="password" autocomplete="new-password" placeholder="Повторите пароль" style="width:100%;box-sizing:border-box;padding:13px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:#fff;border-radius:13px;margin:5px 0 10px;min-height:48px;font-size:16px"><div id="myAutoRecoveryError" style="display:none;margin:10px 0;padding:11px 12px;border-radius:12px;background:rgba(201,111,112,.12);border:1px solid rgba(201,111,112,.22);color:#efaaaa;font-size:13px"></div><button id="myAutoSavePassword" style="width:100%;padding:13px;border:1px solid rgba(214,173,104,.24);border-radius:14px;background:linear-gradient(180deg,#dcb678,#b99152);color:#17120b;font-size:16px;font-weight:700;margin-top:7px">Сохранить новый пароль</button><div id="myAutoRecoveryStatus" style="display:none;text-align:center;color:#78b997;font-size:13px;margin-top:14px"></div></div></div>`+"`"+`;
+  function show(){
+    const el=document.getElementById("myAutoRecovery");
+    if(!el)return;
+    const app=document.getElementById("appShell"),auth=document.getElementById("authScreen");
+    if(app)app.style.display="none";
+    if(auth)auth.style.display="none";
+    el.style.display="grid";
+    const btn=document.getElementById("myAutoSavePassword");
+    if(btn&&!btn.dataset.bound){
+      btn.dataset.bound="1";
+      btn.onclick=async()=>{
+        const p=document.getElementById("myAutoNewPassword").value;
+        const p2=document.getElementById("myAutoNewPassword2").value;
+        const err=document.getElementById("myAutoRecoveryError"),status=document.getElementById("myAutoRecoveryStatus");
+        err.style.display="none";status.style.display="none";
+        if(p.length<6){err.textContent="Пароль должен содержать минимум 6 символов.";err.style.display="block";return}
+        if(p!==p2){err.textContent="Пароли не совпадают.";err.style.display="block";return}
+        btn.disabled=true;btn.textContent="Сохраняем…";
+        try{
+          const client=window.__myAutoSupabaseClient;
+          if(!client)throw new Error("Сессия восстановления не найдена. Откройте письмо ещё раз.");
+          const {error}=await client.auth.updateUser({password:p});
+          if(error)throw error;
+          status.textContent="Пароль изменён. Сейчас вернём вас на экран входа…";status.style.display="block";
+          await client.auth.signOut();
+          setTimeout(()=>location.href=location.origin+location.pathname,900);
+        }catch(e){
+          err.textContent=e?.message||"Не удалось изменить пароль.";err.style.display="block";
+          btn.disabled=false;btn.textContent="Сохранить новый пароль";
+        }
+      };
+    }
+  }
+  function bind(client){
+    if(!client||client.__myAutoRecoveryBound)return;
+    client.__myAutoRecoveryBound=true;window.__myAutoSupabaseClient=client;
+    client.auth.onAuthStateChange((event)=>{if(event==="PASSWORD_RECOVERY")show()});
+  }
+  function patch(){
+    if(!window.supabase||typeof window.supabase.createClient!=="function"||window.supabase.createClient.__myAutoWrapped)return false;
+    const original=window.supabase.createClient;
+    const wrapped=function(){const client=original.apply(this,arguments);bind(client);return client};
+    wrapped.__myAutoWrapped=true;window.supabase.createClient=wrapped;return true;
+  }
+  let tries=0;const timer=setInterval(()=>{tries++;if(patch()||tries>200)clearInterval(timer)},25);
+  window.addEventListener("load",()=>{if(/(?:^|[?&#])code=|type=recovery|access_token=/.test(location.search+location.hash)){setTimeout(()=>{if(window.__myAutoSupabaseClient){window.__myAutoSupabaseClient.auth.getSession().then(({data})=>{if(data.session)show()})}},1200)}});
+  const holder=document.createElement("div");holder.innerHTML=html;document.body.appendChild(holder.firstElementChild);
+})();
+</script>`;
+
+self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(["./manifest.webmanifest"])))})
+self.addEventListener("activate",e=>e.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)));await self.clients.claim()})()))
+async function patched(request){
+  try{
+    const r=await fetch(request,{cache:"no-store"});
+    const type=r.headers.get("content-type")||"";
+    if(!r.ok||(!type.includes("text/html")&&request.mode!=="navigate"))return r;
+    let text=await r.text();
+    if(!text.includes(MARK)){
+      const tag='<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>';
+      if(text.includes(tag))text=text.replace(tag,tag+PATCH_SCRIPT);
+      else text=text.replace("</body>",PATCH_SCRIPT+"</body>");
+    }
+    return new Response(text,{status:r.status,statusText:r.statusText,headers:r.headers});
+  }catch(e){
+    const cached=await caches.match(request);if(cached)return cached;throw e;
+  }
+}
+self.addEventListener("fetch",e=>{
+  if(e.request.method==="GET"&&(e.request.mode==="navigate"||new URL(e.request.url).pathname.endsWith("/index.html")))e.respondWith(patched(e.request));
+  else e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));
+});
