@@ -6,7 +6,7 @@ permissions:
   contents: write
 jobs:
   patch:
-    if: ${{ !contains(github.event.head_commit.message, 'Fix recovery flow for cross-browser email links') }}
+    if: ${{ !contains(github.event.head_commit.message, 'recovery implicit applied') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -44,5 +44,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           rm -f .github/workflows/fix-recovery-implicit.yml
           git add index.html .github/workflows/fix-recovery-implicit.yml
-          git commit -m "Fix recovery flow for cross-browser email links"
+          git commit -m "recovery implicit applied"
           git push
