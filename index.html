@@ -180,9 +180,24 @@ header{background:rgba(7,9,13,.68)!important;backdrop-filter:blur(28px);-webkit-
 .account-line{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
 .account-line input{margin:0;max-width:60%}
 #accountSyncText{margin:4px 0 12px}
-</style></head><body><div id="authScreen"><div class="auth-box"><div class="auth-mark">MY AUTO · 3.5</div><div class="auth-title">Мой Авто</div><div class="auth-sub">Ваш личный автомобильный гараж.<br>Сохраняйте историю и синхронизируйте её между устройствами.</div><div class="auth-tabs"><button id="loginTab" class="active" onclick="showAuth('login')">Войти</button><button id="signupTab" onclick="showAuth('signup')">Создать аккаунт</button></div><div id="authError" class="auth-error"></div><div id="authLogin"><input id="authEmail" type="email" placeholder="E-mail" autocomplete="email"><input id="authPassword" type="password" placeholder="Пароль" autocomplete="current-password"><button onclick="loginUser()">Войти</button><button class="secondary" onclick="resetPassword()">Забыли пароль?</button></div><div id="authSignup" style="display:none"><input id="authName" placeholder="Ваше имя" autocomplete="name"><input id="authEmail2" type="email" placeholder="E-mail" autocomplete="email"><input id="authPassword2" type="password" placeholder="Пароль (минимум 6 символов)" autocomplete="new-password"><button onclick="signupUser()">Создать аккаунт</button></div><div id="authRecovery" class="recovery-form"><div class="recovery-title">Новый пароль</div><div class="recovery-sub">Ссылка из письма подтверждена. Придумай новый пароль для аккаунта.</div><input id="authNewPassword" type="password" placeholder="Новый пароль (минимум 6 символов)" autocomplete="new-password"><input id="authNewPassword2" type="password" placeholder="Повтори новый пароль" autocomplete="new-password"><button onclick="updatePassword()">Сохранить новый пароль</button><button class="recovery-back" onclick="showAuth('login')">Назад ко входу</button></div><div class="auth-foot">Ваши данные принадлежат вашему аккаунту. Доступ к ним защищается правилами базы данных.</div></div></div><div id="appShell"><main>
+</style>
+<style id="top-garage-menu-style">
+.top-garage-menu{margin-top:10px!important;padding:16px!important;border-color:rgba(215,177,109,.18)!important}
+.top-garage-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.top-garage-head h2{margin:0 0 4px!important}
+.garage-badge{font-size:10px;font-weight:800;letter-spacing:.16em;color:#f0cf91;padding:7px 9px;border-radius:999px;background:rgba(215,177,109,.09);border:1px solid rgba(215,177,109,.18)}
+.top-garage-menu select{margin:0 0 7px!important;font-weight:700}
+@media(max-width:520px){.top-garage-head{align-items:flex-start}.garage-badge{font-size:9px}}
+</style>
+          </head><body><div id="authScreen"><div class="auth-box"><div class="auth-mark">MY AUTO · 3.5</div><div class="auth-title">Мой Авто</div><div class="auth-sub">Ваш личный автомобильный гараж.<br>Сохраняйте историю и синхронизируйте её между устройствами.</div><div class="auth-tabs"><button id="loginTab" class="active" onclick="showAuth('login')">Войти</button><button id="signupTab" onclick="showAuth('signup')">Создать аккаунт</button></div><div id="authError" class="auth-error"></div><div id="authLogin"><input id="authEmail" type="email" placeholder="E-mail" autocomplete="email"><input id="authPassword" type="password" placeholder="Пароль" autocomplete="current-password"><button onclick="loginUser()">Войти</button><button class="secondary" onclick="resetPassword()">Забыли пароль?</button></div><div id="authSignup" style="display:none"><input id="authName" placeholder="Ваше имя" autocomplete="name"><input id="authEmail2" type="email" placeholder="E-mail" autocomplete="email"><input id="authPassword2" type="password" placeholder="Пароль (минимум 6 символов)" autocomplete="new-password"><button onclick="signupUser()">Создать аккаунт</button></div><div id="authRecovery" class="recovery-form"><div class="recovery-title">Новый пароль</div><div class="recovery-sub">Ссылка из письма подтверждена. Придумай новый пароль для аккаунта.</div><input id="authNewPassword" type="password" placeholder="Новый пароль (минимум 6 символов)" autocomplete="new-password"><input id="authNewPassword2" type="password" placeholder="Повтори новый пароль" autocomplete="new-password"><button onclick="updatePassword()">Сохранить новый пароль</button><button class="recovery-back" onclick="showAuth('login')">Назад ко входу</button></div><div class="auth-foot">Ваши данные принадлежат вашему аккаунту. Доступ к ним защищается правилами базы данных.</div></div></div><div id="appShell"><main>
 <header class="top"><div class="eyebrow">PERSONAL GARAGE · 3.5 <span id="cloudStatus" class="cloud-status">● облако</span></div><h1>Мой Авто</h1><div class="muted">Всё о машине — в одном месте.</div></header>
-<nav><button class="active" onclick="tab('home',this)">Главная</button><button onclick="tab('service',this)">ТО</button><button onclick="tab('fuel',this)">Топливо</button><button onclick="tab('tires',this)">Шины</button><button onclick="tab('data',this)">Данные</button></nav>
+<!-- top-garage-menu-v1 -->
+<section class="card top-garage-menu" id="topGarageMenu">
+ <div class="top-garage-head"><div><h2>Мои автомобили</h2><div class="small">Переключайся между автомобилями в один клик</div></div><span class="garage-badge">ГАРАЖ</span></div>
+ <select id="topCarSelect" onchange="switchCar(this.value)"></select>
+ <div class="grid"><button onclick="createCar()">+ Добавить автомобиль</button><button class="danger" onclick="removeActiveCar()">Удалить текущий</button></div>
+</section>
+<nav><button class="active" onclick="tab('home',this)">Главная</button><button onclick="tab('service',this)">ТО</button><button onclick="tab('fuel',this)">Топливо</button><button onclick="tab('tires',this)">Шины</button><button onclick="tab('data',this)">Данные</button><button onclick="openGarage(this)">Автомобили</button></nav>
 
 <section id="home" class="view active">
 <section class="hero-car" id="premiumHero">
@@ -436,7 +451,11 @@ $("fuelList").innerHTML=c.fuel.map(x=>`<div class="item"><b>${x.liters} л</b> �
 let liters=c.fuel.reduce((a,x)=>a+x.liters,0);$("fuelLiters").textContent=liters.toFixed(1);let fs=c.fuel.filter(x=>x.km).sort((a,b)=>a.km-b.km);$("fuelAvg").textContent=fs.length>1?((fs.reduce((a,x)=>a+x.liters,0)/(fs.at(-1).km-fs[0].km))*100).toFixed(1)+" л/100 км":"—";
 $("tireList").innerHTML=c.tires.map(x=>`<div class="item"><b>${esc(x.season)} · ${esc(x.brand)}</b><br>${esc(x.size)}${x.depth?" · "+x.depth+" мм":""}<br><span class="muted">${esc(x.date)} · ${(x.km||0).toLocaleString("ru-RU")} км</span></div>`).join("")||'<span class="muted">Комплектов пока нет.</span>';
 $("carSelect").innerHTML=db.cars.map(x=>`<option value="${x.id}" ${x.id===db.activeCarId?"selected":""}>${esc(x.car.name||"Новый автомобиль")}</option>`).join("");
+$("topCarSelect").innerHTML=db.cars.map(x=>`<option value="${x.id}" ${x.id===db.activeCarId?"selected":""}>${esc(x.car.name||"Новый автомобиль")}</option>`).join("");
 }
+
+
+function openGarage(b){tab("data",b);setTimeout(()=>{const el=$("topGarageMenu");if(el)el.scrollIntoView({behavior:"smooth",block:"start"})},30)}
 
 function createCar(){let c=newCar();db.cars.push(c);db.activeCarId=c.id;persist();tab("data",document.querySelectorAll("nav button")[4])}
 function switchCar(id){if(db.cars.some(c=>c.id===id)){db.activeCarId=id;persist()}}
