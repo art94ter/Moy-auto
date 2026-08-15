@@ -357,10 +357,13 @@ async function startApp(user){
   const generation=++authGeneration;
   clearTimeout(cloudTimer);cloudTimer=null;
   currentUser=user;
+  $("authScreen").style.display="none";
+  $("appShell").classList.remove("authHidden");
   resetGarageState();
   currentUser=user;
-  const loaded=await cloudLoad(user,generation);
-  if(generation!==authGeneration||!currentUser||currentUser.id!==user.id||!loaded.ok)return;
+  try{await cloudLoad(user,generation)}catch(e){console.error("CLOUD LOAD EXCEPTION",e)}
+  if(generation!==authGeneration||!currentUser||currentUser.id!==user.id)return;
+  garageReady=true;
   render();
 }
 async function handleAuthRedirect(){try{const params=new URLSearchParams(location.search);const hash=location.hash?new URLSearchParams(location.hash.slice(1)):null;const code=params.get('code');const isRecovery=params.get('type')==='recovery'||hash?.get('type')==='recovery'||hash?.has('access_token');if(code){const {error}=await supa.auth.exchangeCodeForSession(code);if(error){authMsg('Ссылка восстановления открыта в другом браузере. Запроси новое письмо и открой ссылку в том же браузере.');return;}showAuth('recovery');authMsg('Придумай новый пароль.');history.replaceState({},document.title,location.pathname);return;}if(hash?.get('access_token')&&hash?.get('refresh_token')){const {error}=await supa.auth.setSession({access_token:hash.get('access_token'),refresh_token:hash.get('refresh_token')});if(error){authMsg(error.message);return;}showAuth('recovery');authMsg('Придумай новый пароль.');return;}if(isRecovery){showAuth('recovery');authMsg('Придумай новый пароль.');}}catch(e){console.warn(e);authMsg('Не удалось открыть восстановление. Запроси новое письмо.')}}
