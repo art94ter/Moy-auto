@@ -1,0 +1,45 @@
+name: Fix recovery flow in all browsers
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, 'Fix recovery flow in all browsers') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Patch recovery session handling
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+
+          old_update='''async function updatePassword(){const p1=$("authNewPassword").value;const p2=$("authNewPassword2").value;if(p1.length<6)return authMsg('Новый пароль должен быть не короче 6 символов.');if(p1!==p2)return authMsg('Пароли не совпадают.');const {error}=await supa.auth.updateUser({password:p1});if(error)return authMsg(error.message);$("authNewPassword").value='';$("authNewPassword2").value='';try{await supa.auth.signOut({scope:'local'});}catch(e){console.warn('recovery signOut',e)}showAuth('login');authMsg('Пароль изменён. Теперь войди с новым паролем.');$("authEmail").focus()}'''
+          new_update='''async function updatePassword(){const p1=$("authNewPassword").value;const p2=$("authNewPassword2").value;if(p1.length<6)return authMsg('Новый пароль должен быть не короче 6 символов.');if(p1!==p2)return authMsg('Пароли не совпадают.');const {error}=await supa.auth.updateUser({password:p1});if(error)return authMsg(error.message);recoveryFlow=false;$("authNewPassword").value='';$("authNewPassword2").value='';try{await supa.auth.signOut({scope:'local'});}catch(e){console.warn('recovery signOut',e)}showAuth('login');authMsg('Пароль изменён. Теперь войди с новым паролем.');$("authEmail").focus()}'''
+          if old_update not in s: raise SystemExit('updatePassword marker not found')
+          s=s.replace(old_update,new_update,1)
+
+          old_redirect='''async function handleAuthRedirect(){try{const params=new URLSearchParams(location.search);const hash=location.hash?new URLSearchParams(location.hash.slice(1)):null;const code=params.get('code');const isRecovery=params.get('type')==='recovery'||hash?.get('type')==='recovery'||hash?.has('access_token');if(code){const {error}=await supa.auth.exchangeCodeForSession(code);if(error){authMsg('Ссылка восстановления открыта в другом браузере. Запроси новое письмо и открой ссылку в том же браузере.');return;}showAuth('recovery');authMsg('Придумай новый пароль.');history.replaceState({},document.title,location.pathname);return;}if(hash?.get('access_token')&&hash?.get('refresh_token')){const {error}=await supa.auth.setSession({access_token:hash.get('access_token'),refresh_token:hash.get('refresh_token')});if(error){authMsg(error.message);return;}showAuth('recovery');authMsg('Придумай новый пароль.');return;}if(isRecovery){showAuth('recovery');authMsg('Придумай новый пароль.');}}catch(e){console.warn(e);authMsg('Не удалось открыть восстановление. Запроси новое письмо.')}}'''
+          new_redirect='''let recoveryFlow=false;\nasync function handleAuthRedirect(){try{const params=new URLSearchParams(location.search);const hash=location.hash?new URLSearchParams(location.hash.slice(1)):null;const code=params.get('code');const isRecovery=params.get('type')==='recovery'||hash?.get('type')==='recovery'||hash?.has('access_token');if(code){recoveryFlow=true;const {error}=await supa.auth.exchangeCodeForSession(code);if(error){recoveryFlow=false;authMsg('Ссылка восстановления недействительна. Запроси новое письмо.');return;}showAuth('recovery');authMsg('Придумай новый пароль.');history.replaceState({},document.title,location.pathname);return;}if(hash?.get('access_token')&&hash?.get('refresh_token')){recoveryFlow=true;const {error}=await supa.auth.setSession({access_token:hash.get('access_token'),refresh_token:hash.get('refresh_token')});if(error){recoveryFlow=false;authMsg(error.message);return;}showAuth('recovery');authMsg('Придумай новый пароль.');return;}if(isRecovery){recoveryFlow=true;showAuth('recovery');authMsg('Придумай новый пароль.');}}catch(e){recoveryFlow=false;console.warn(e);authMsg('Не удалось открыть восстановление. Запроси новое письмо.')}}'''
+          if old_redirect not in s: raise SystemExit('handleAuthRedirect marker not found')
+          s=s.replace(old_redirect,new_redirect,1)
+
+          old_listener='''supa.auth.onAuthStateChange((event,session)=>{\n  if(event==='SIGNED_OUT'){authGeneration++;resetGarageState();currentUser=null;return}\n  if(event==='PASSWORD_RECOVERY'){showAuth('recovery');authMsg('Придумай новый пароль.');return}\n  if(session?.user){void startApp(session.user)}\n});'''
+          new_listener='''supa.auth.onAuthStateChange((event,session)=>{\n  if(event==='SIGNED_OUT'){authGeneration++;resetGarageState();currentUser=null;return}\n  if(event==='PASSWORD_RECOVERY'||recoveryFlow){showAuth('recovery');if(event==='PASSWORD_RECOVERY')authMsg('Придумай новый пароль.');return}\n  if(session?.user){void startApp(session.user)}\n});'''
+          if old_listener not in s: raise SystemExit('auth listener marker not found')
+          s=s.replace(old_listener,new_listener,1)
+
+          p.write_text(s,encoding='utf-8')
+          print('recovery patch applied')
+      - name: Commit patch and remove workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .github/workflows/fix-recovery-safari.yml
+          git add index.html .github/workflows/fix-recovery-safari.yml
+          git commit -m "Fix recovery flow in all browsers"
+          git push
