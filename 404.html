@@ -1,1 +1,8 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Мой Авто</title><script>const root=location.origin+'/';location.replace(root+location.search+location.hash);</script></head><body style="background:#07090d;color:#fff;font-family:Arial,sans-serif;text-align:center;padding:40px">Открываем приложение…</body></html>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Мой Авто</title><script>
+// GitHub Pages serves this file for unknown paths. Never redirect to the
+// domain root: the app lives under /Moy-auto/. Preserve Supabase recovery
+// query/hash parameters so the app can route them to reset.html.
+const projectRoot='/Moy-auto/';
+const target=projectRoot+(location.search||'')+(location.hash||'');
+location.replace(target);
+</script></head><body style="background:#07090d;color:#fff;font-family:Arial,sans-serif;text-align:center;padding:40px">Открываем приложение…</body></html>
