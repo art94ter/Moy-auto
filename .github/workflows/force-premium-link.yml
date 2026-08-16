@@ -13,16 +13,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Inject stylesheet link into index.html
+      - name: Inject premium stylesheet and car swipe
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
           link='<link rel="stylesheet" href="premium-final.css?v=1">'
+          script='<script src="swipe-v22.js?v=restore1" defer></script>'
           if link not in s:
               s=s.replace('</head>', link+'</head>', 1)
-              p.write_text(s, encoding='utf-8')
+          if script not in s:
+              s=s.replace('</body>', script+'</body>', 1)
+          p.write_text(s, encoding='utf-8')
           PY
       - name: Commit injection
         run: |
@@ -30,5 +33,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
           git diff --cached --quiet && exit 0
-          git commit -m "Inject final premium CSS [premium-injected]"
+          git commit -m "Restore car swipe [premium-injected]"
           git push
