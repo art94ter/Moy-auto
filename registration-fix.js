@@ -1,11 +1,29 @@
-// RECOVERY_DEPLOY_V4
+// RECOVERY_DEPLOY_V5
 (function(){
-  const RECOVERY_KEY='moy-auto-recovery-v4';
-  const PENDING_KEY='moy-auto-recovery-pending-v4';
+  // Recovery must be driven by a real Supabase Auth session, never by a
+  // persistent "pending" flag. The previous flag could leave the app stuck
+  // on the new-password screen with "Auth session missing!" after a failed
+  // or already-consumed reset link.
+  const OLD_KEYS=[
+    'moy-auto-recovery-v1','moy-auto-recovery-v2','moy-auto-recovery-v3',
+    'moy-auto-recovery-v4','moy-auto-recovery-pending-v4'
+  ];
 
-  function urlHasRecovery(){
+  function clearOldRecoveryState(){
+    for(const key of OLD_KEYS){
+      try{sessionStorage.removeItem(key);}catch(e){}
+      try{localStorage.removeItem(key);}catch(e){}
+    }
+  }
+
+  function recoveryParams(){
     const qs=new URLSearchParams(location.search||'');
     const hs=new URLSearchParams((location.hash||'').replace(/^#/,''));
+    return {qs,hs};
+  }
+
+  function urlHasRecovery(){
+    const {qs,hs}=recoveryParams();
     return qs.get('type')==='recovery' ||
       qs.get('type')==='password_recovery' ||
       qs.has('code') ||
@@ -15,56 +33,109 @@
       hs.has('code');
   }
 
-  function pending(){
-    try{return sessionStorage.getItem(PENDING_KEY)==='1' || localStorage.getItem(PENDING_KEY)==='1';}catch(e){return false;}
-  }
-
-  function markPending(on){
-    try{
-      if(on){sessionStorage.setItem(PENDING_KEY,'1');localStorage.setItem(PENDING_KEY,'1');}
-      else{sessionStorage.removeItem(PENDING_KEY);localStorage.removeItem(PENDING_KEY);}
-    }catch(e){}
-  }
-
-  function setRecovery(on){
-    window.recoveryFlow=!!on;
-    try{sessionStorage.setItem(RECOVERY_KEY,on?'1':'0');}catch(e){}
+  function setRecoveryUI(){
+    window.recoveryFlow=true;
     const app=document.getElementById('appShell');
     const auth=document.getElementById('authScreen');
-    if(on){
-      markPending(true);
-      if(app)app.style.display='none';
-      if(auth)auth.style.display='grid';
-      if(typeof showAuth==='function')showAuth('recovery');
-    }
+    if(app)app.style.display='none';
+    if(auth)auth.style.display='grid';
+    if(typeof showAuth==='function')showAuth('recovery');
   }
 
-  // Important: do this immediately. Supabase can consume the URL before the
-  // normal startup code gets its first chance to inspect it.
-  if(urlHasRecovery() || pending()) setRecovery(true);
+  function clearRecoveryUI(){
+    window.recoveryFlow=false;
+    const app=document.getElementById('appShell');
+    const auth=document.getElementById('authScreen');
+    if(app)app.style.display='none';
+    if(auth)auth.style.display='grid';
+    if(typeof showAuth==='function')showAuth('login');
+  }
+
+  async function sessionFromCallback(){
+    // 1) Prefer the session already established by Supabase's automatic URL
+    //    detection. This is the normal implicit-flow password recovery path.
+    try{
+      const {data}=await supa.auth.getSession();
+      if(data?.session)return data.session;
+    }catch(e){console.warn('RECOVERY GET SESSION',e)}
+
+    const {qs,hs}=recoveryParams();
+
+    // 2) If a PKCE-style code is present, exchange it explicitly.
+    const code=qs.get('code');
+    if(code){
+      try{
+        const {data,error}=await supa.auth.exchangeCodeForSession(code);
+        if(!error && data?.session)return data.session;
+        console.warn('RECOVERY CODE EXCHANGE',error);
+      }catch(e){console.warn('RECOVERY CODE EXCHANGE EXCEPTION',e)}
+    }
+
+    // 3) If the callback contains an implicit-flow token pair, explicitly set
+    //    it on the main client. This also repairs cases where URL detection
+    //    raced the page initialization.
+    const accessToken=hs.get('access_token');
+    const refreshToken=hs.get('refresh_token');
+    if(accessToken && refreshToken){
+      try{
+        const {data,error}=await supa.auth.setSession({
+          access_token:accessToken,
+          refresh_token:refreshToken
+        });
+        if(!error && data?.session)return data.session;
+        console.warn('RECOVERY SET SESSION',error);
+      }catch(e){console.warn('RECOVERY SET SESSION EXCEPTION',e)}
+    }
+
+    // Give Supabase's initialization/listener a moment to finish if it was
+    // already consuming the callback URL in parallel.
+    for(let i=0;i<8;i++){
+      await new Promise(r=>setTimeout(r,150));
+      try{
+        const {data}=await supa.auth.getSession();
+        if(data?.session)return data.session;
+      }catch(e){}
+    }
+    return null;
+  }
+
+  async function enterRecovery(){
+    const session=await sessionFromCallback();
+    if(!session){
+      clearRecoveryUI();
+      authMsg('Ссылка восстановления уже использована или недействительна. Запроси новое письмо и открой его один раз.');
+      return false;
+    }
+    setRecoveryUI();
+    authMsg('Придумай новый пароль.');
+    return true;
+  }
+
+  // Remove all stale flags created by previous recovery patches. A normal
+  // visit must always show the normal login screen, not a fake recovery page.
+  clearOldRecoveryState();
 
   const originalStartApp=window.startApp;
   window.startApp=async function(user){
-    if(window.recoveryFlow || urlHasRecovery() || pending()){
-      setRecovery(true);
-      return;
+    if(window.recoveryFlow || urlHasRecovery()){
+      return enterRecovery();
     }
     return originalStartApp ? originalStartApp(user) : undefined;
   };
 
+  // Password reset request: keep the existing implicit flow so the link can
+  // be opened in either Safari or Yandex without a PKCE verifier mismatch.
   window.resetPassword=async function(){
     const email=(document.getElementById('authEmail')?.value||'').trim();
     if(!email)return authMsg('Сначала введи e-mail.');
     const btn=document.querySelector('#authLogin button[onclick*="resetPassword"]');
     if(btn){btn.disabled=true;btn.textContent='Отправляем…';}
-    markPending(true);
     try{
-      const redirectTo=location.origin+location.pathname+'?type=recovery';
+      const redirectTo=location.origin+location.pathname;
       const {error}=await supa.auth.resetPasswordForEmail(email,{redirectTo});
-      if(error){markPending(false);return authMsg(error.message||'Не удалось отправить письмо.');}
-      authMsg('Письмо отправлено. Открой САМОЕ ПОСЛЕДНЕЕ письмо и нажми ссылку восстановления один раз.');
+      if(error)return authMsg(error.message||'Не удалось отправить письмо.');
+      authMsg('Письмо отправлено. Открой самое последнее письмо и нажми ссылку восстановления один раз.');
     }catch(e){
-      markPending(false);
       console.error('RECOVERY REQUEST ERROR',e);
       authMsg(e?.message||'Не удалось отправить письмо.');
     }finally{
@@ -81,22 +152,25 @@
     const btn=document.querySelector('#authRecovery button[onclick*="updatePassword"]');
     if(btn){btn.disabled=true;btn.textContent='Сохраняем…';}
     try{
+      // Never call updateUser blindly. First make sure a real recovery session
+      // exists; otherwise Supabase correctly returns "Auth session missing!".
+      const session=await sessionFromCallback();
+      if(!session){
+        clearRecoveryUI();
+        return authMsg('Сессия восстановления не установлена. Открой самое последнее письмо восстановления один раз.');
+      }
+
       const {error}=await supa.auth.updateUser({password:p1});
       if(error)return authMsg(error.message||'Не удалось сохранить пароль.');
 
-      window.recoveryFlow=false;
-      markPending(false);
-      try{sessionStorage.removeItem(RECOVERY_KEY);}catch(e){}
+      try{history.replaceState({},document.title,location.pathname);}catch(e){}
+      await supa.auth.signOut({scope:'local'}).catch(()=>{});
+      clearRecoveryUI();
+      authMsg('Пароль сохранён. Теперь введи e-mail и новый пароль и нажми «Войти».');
       const a=document.getElementById('authNewPassword');
       const b=document.getElementById('authNewPassword2');
-      if(a)a.value='';if(b)b.value='';
-      await supa.auth.signOut({scope:'local'}).catch(()=>{});
-      const app=document.getElementById('appShell');
-      if(app)app.style.display='none';
-      const auth=document.getElementById('authScreen');
-      if(auth)auth.style.display='grid';
-      showAuth('login');
-      authMsg('Пароль сохранён. Теперь введи e-mail и НОВЫЙ пароль и нажми «Войти».');
+      if(a)a.value='';
+      if(b)b.value='';
     }catch(e){
       console.error('UPDATE PASSWORD ERROR',e);
       authMsg(e?.message||'Не удалось сохранить пароль.');
@@ -107,25 +181,27 @@
 
   supa.auth.onAuthStateChange((event,session)=>{
     if(event==='PASSWORD_RECOVERY'){
-      setRecovery(true);
-      authMsg('Придумай новый пароль.');
+      if(session?.user){
+        setRecoveryUI();
+        authMsg('Придумай новый пароль.');
+      }else{
+        void enterRecovery();
+      }
       return;
     }
-    if(window.recoveryFlow || urlHasRecovery() || pending())return;
+    if(event==='SIGNED_OUT'){
+      window.recoveryFlow=false;
+      return;
+    }
+    if(window.recoveryFlow || urlHasRecovery())return;
     if(event==='SIGNED_IN' && session?.user && typeof originalStartApp==='function'){
       originalStartApp(session.user);
     }
   });
 
-  // If Supabase has already consumed the URL before this script loaded,
-  // keep the recovery screen alive using the pending flag/session state.
-  if(urlHasRecovery() || pending()){
-    setRecovery(true);
-    supa.auth.getSession().then(({data})=>{
-      if(data?.session){
-        setRecovery(true);
-        authMsg('Придумай новый пароль.');
-      }
-    }).catch(()=>{});
+  // Handle the callback after the page has loaded. Do not enter recovery just
+  // because a flag exists in storage: only a valid Auth session can do that.
+  if(urlHasRecovery()){
+    void enterRecovery();
   }
 })();
