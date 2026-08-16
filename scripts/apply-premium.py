@@ -3,27 +3,42 @@ from pathlib import Path
 p = Path('index.html')
 s = p.read_text(encoding='utf-8')
 marker = '<!-- PREMIUM DASHBOARD V5 -->'
-if marker in s:
-    print('already applied')
-    raise SystemExit(0)
+v6 = '<style id="premium-dashboard-v6-fix">'
 
-css = r'''<style id="premium-dashboard-v5">
-:root{--v5-bg:#05070b;--v5-gold:#d8b36e;--v5-gold2:#f2cf91;--v5-muted:#8d98a9}
-html,body{background:#05070b!important}body{background:radial-gradient(900px 500px at 50% -160px,rgba(216,179,110,.16),transparent 65%),radial-gradient(700px 500px at 100% 55%,rgba(62,91,130,.08),transparent 70%),#05070b!important}
-main{max-width:900px!important;padding:0 14px 150px!important}.top{display:none!important}.premium-v5-hide{display:none!important}
-nav{position:fixed!important;left:50%!important;bottom:max(12px,env(safe-area-inset-bottom))!important;top:auto!important;transform:translateX(-50%)!important;width:min(780px,calc(100% - 28px))!important;padding:7px!important;gap:5px!important;z-index:1000!important;display:flex!important;overflow:visible!important;background:linear-gradient(145deg,rgba(32,37,46,.72),rgba(12,15,21,.68))!important;border:1px solid rgba(255,255,255,.15)!important;border-radius:24px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.13),0 18px 60px rgba(0,0,0,.55)!important;backdrop-filter:blur(26px) saturate(145%)!important;-webkit-backdrop-filter:blur(26px) saturate(145%)!important}
-nav button{flex:1!important;width:0!important;min-height:58px!important;margin:0!important;padding:8px 4px!important;border:1px solid transparent!important;border-radius:18px!important;background:transparent!important;color:#8892a1!important;font-size:13px!important;font-weight:700!important;box-shadow:none!important;white-space:nowrap!important}nav button.active{color:var(--v5-gold2)!important;background:linear-gradient(145deg,rgba(216,179,110,.18),rgba(216,179,110,.045))!important;border-color:rgba(216,179,110,.28)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 6px 22px rgba(216,179,110,.09)!important}nav button:active{transform:scale(.97)!important}
-.hero-car{min-height:275px!important;padding:27px!important;border-radius:30px!important;margin:18px 0 14px!important;background:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.025) 50%,rgba(255,255,255,.012)),radial-gradient(520px 300px at 92% 15%,rgba(216,179,110,.17),transparent 68%),#11151c!important;border:1px solid rgba(255,255,255,.14)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 26px 70px rgba(0,0,0,.42)!important;backdrop-filter:blur(20px) saturate(125%)!important;-webkit-backdrop-filter:blur(20px) saturate(125%)!important}.hero-car:before{content:"";position:absolute;right:-55px;top:15px;width:390px;height:250px;border-radius:50%;border:1px solid rgba(216,179,110,.18);box-shadow:0 0 0 38px rgba(216,179,110,.035),0 0 0 76px rgba(216,179,110,.022),0 0 70px rgba(216,179,110,.08);pointer-events:none}.hero-car:after{content:"";position:absolute;right:16%;bottom:54px;width:210px;height:2px;background:linear-gradient(90deg,transparent,rgba(216,179,110,.45),transparent);filter:blur(.5px);pointer-events:none}.hero-kicker{font-size:11px!important;letter-spacing:.22em!important;color:var(--v5-gold2)!important;font-weight:800!important;text-transform:uppercase}.hero-name{font-size:31px!important;line-height:1.05!important;font-weight:800!important;letter-spacing:-.045em!important;margin:9px 0 3px!important;position:relative;z-index:2}.hero-meta{font-size:14px!important;color:var(--v5-muted)!important;position:relative;z-index:2}.hero-km{font-size:42px!important;line-height:1!important;font-weight:850!important;letter-spacing:-.055em!important;margin-top:25px!important;position:relative;z-index:2}.hero-km span{font-size:14px!important;color:var(--v5-muted)!important}.progress-wrap{position:relative;z-index:2;margin-top:27px!important}.progress{height:8px!important;background:rgba(255,255,255,.07)!important}.progress i{background:linear-gradient(90deg,var(--v5-gold),var(--v5-gold2))!important;box-shadow:0 0 22px rgba(216,179,110,.3)!important}
-.premium-stat-grid{gap:10px!important;margin:14px 0 24px!important}.premium-stat{padding:17px!important;min-height:104px;border-radius:20px!important;background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025))!important;border:1px solid rgba(255,255,255,.105)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 14px 35px rgba(0,0,0,.2)!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important}.premium-stat b{font-size:22px!important}.premium-stat span{font-size:11px!important;color:var(--v5-muted)!important;line-height:1.35}
-.section-title{margin:28px 3px 12px!important}.section-title h3{font-size:20px!important}.quick-grid{grid-template-columns:repeat(3,1fr)!important;gap:10px!important}.quick{min-height:175px!important;padding:17px!important;border-radius:22px!important;background:linear-gradient(145deg,rgba(255,255,255,.085),rgba(255,255,255,.025))!important;border:1px solid rgba(216,179,110,.28)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 38px rgba(0,0,0,.25)!important;backdrop-filter:blur(22px) saturate(135%)!important;-webkit-backdrop-filter:blur(22px) saturate(135%)!important}.quick .qicon{width:48px!important;height:48px!important;border-radius:15px!important;background:linear-gradient(145deg,rgba(216,179,110,.18),rgba(255,255,255,.035))!important;border:1px solid rgba(216,179,110,.28)!important;color:var(--v5-gold2)!important;box-shadow:0 10px 24px rgba(0,0,0,.2)!important}.quick strong{font-size:15px!important;line-height:1.15!important}.quick small{font-size:11px!important;line-height:1.4!important}.card{background:linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.022))!important;border:1px solid rgba(255,255,255,.11)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 18px 45px rgba(0,0,0,.24)!important;backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important}
-@media(max-width:600px){main{padding-left:12px!important;padding-right:12px!important;padding-bottom:145px!important}.hero-car{min-height:255px!important;padding:23px!important;margin-top:14px!important}.hero-name{font-size:28px!important}.hero-km{font-size:37px!important}.quick-grid{grid-template-columns:repeat(3,1fr)!important;gap:8px!important}.quick{min-height:155px!important;padding:13px!important}.quick .qicon{width:42px!important;height:42px!important}.quick strong{font-size:13px!important}.quick small{font-size:10px!important}.premium-stat{padding:13px!important;min-height:96px}.premium-stat b{font-size:20px!important}nav{width:calc(100% - 20px)!important;bottom:max(9px,env(safe-area-inset-bottom))!important;border-radius:22px!important}nav button{min-height:55px!important;font-size:12px!important}}
+if v6 not in s:
+    css = r'''<style id="premium-dashboard-v6-fix">
+html,body{width:100%;max-width:100%;overflow-x:hidden!important}
+body{padding-bottom:0!important}
+main{width:100%!important;max-width:820px!important;margin:0 auto!important;padding:0 14px 155px!important}
+body>nav,nav{position:fixed!important;left:50vw!important;right:auto!important;top:auto!important;bottom:calc(82px + env(safe-area-inset-bottom))!important;transform:translateX(-50%)!important;width:calc(100vw - 20px)!important;max-width:820px!important;height:auto!important;margin:0!important;padding:6px!important;display:flex!important;flex-wrap:nowrap!important;gap:5px!important;overflow:hidden!important;z-index:2147483000!important;border-radius:22px!important;background:linear-gradient(145deg,rgba(35,40,49,.88),rgba(12,15,21,.86))!important;border:1px solid rgba(255,255,255,.15)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 18px 55px rgba(0,0,0,.58)!important;backdrop-filter:blur(28px) saturate(150%)!important;-webkit-backdrop-filter:blur(28px) saturate(150%)!important}
+nav button{position:relative!important;flex:1 1 0!important;width:auto!important;min-width:0!important;min-height:56px!important;height:56px!important;margin:0!important;padding:6px 2px!important;border-radius:17px!important;background:transparent!important;border:1px solid transparent!important;box-shadow:none!important;color:#8791a1!important;font-size:12px!important;font-weight:750!important;white-space:nowrap!important;overflow:hidden!important}
+nav button.active{color:#f1cf91!important;background:linear-gradient(145deg,rgba(216,179,110,.19),rgba(216,179,110,.055))!important;border-color:rgba(216,179,110,.30)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 7px 20px rgba(216,179,110,.08)!important}
+nav button:active{transform:scale(.96)!important}
+body.home-v6-clean #home .premium-v6-garage-hide,body.home-v6-clean #home .premium-v6-profile-hide{display:none!important}
+@media(max-width:600px){main{padding:0 12px 150px!important}.hero-car{margin-top:12px!important}.premium-stat-grid{margin-bottom:20px!important}.quick-grid{grid-template-columns:repeat(2,1fr)!important;gap:10px!important}.quick{min-height:145px!important;padding:16px!important}.quick strong{font-size:14px!important}.quick small{font-size:10px!important}nav{bottom:calc(78px + env(safe-area-inset-bottom))!important;width:calc(100vw - 16px)!important;border-radius:20px!important}nav button{min-height:54px!important;height:54px!important;font-size:11px!important}}
 </style>'''
-
-js = r'''<script id="premium-dashboard-v5-js">(function(){function markHome(){var home=document.getElementById('home');var active=home&&home.classList.contains('active');if(!active)return;document.querySelectorAll('#home .card').forEach(function(card){var t=(card.innerText||'').replace(/\s+/g,' ').trim();if(/Мои автомобили|Переключайся между автомобилями|Удалить текущий/.test(t))card.classList.add('premium-v5-hide');});document.querySelectorAll('#home .tile').forEach(function(tile){var t=(tile.innerText||'').trim();if(/^Автомобиль$/.test(t)||/Профиль и автомобили/.test(t))tile.classList.add('premium-v5-hide');});}function run(){markHome();}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();new MutationObserver(run).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});})();</script>'''
-
-if '</head>' not in s or '</body>' not in s:
-    raise SystemExit('index.html markers not found')
-s = s.replace('</head>', marker + css + '</head>', 1)
-s = s.replace('</body>', js + '</body>', 1)
-p.write_text(s, encoding='utf-8')
-print('premium dashboard applied')
+    js = r'''<script id="premium-dashboard-v6-fix-js">(function(){
+function clean(){
+  var home=document.getElementById('home');
+  var isHome=!!(home&&home.classList.contains('active'));
+  document.body.classList.toggle('home-v6-clean',isHome);
+  if(!isHome||!home)return;
+  home.querySelectorAll('.card,.tile').forEach(function(el){
+    var t=(el.innerText||'').replace(/\s+/g,' ').trim();
+    if(/Мои автомобили|Переключайся между автомобилями в один клик|Удалить текущий|\+ Добавить автомобиль/.test(t))el.classList.add('premium-v6-garage-hide');
+    if(/Профиль и автомобили/.test(t))el.classList.add('premium-v6-profile-hide');
+  });
+}
+function navFix(){var nav=document.querySelector('nav');if(!nav)return;nav.style.position='fixed';nav.style.left='50vw';nav.style.right='auto';nav.style.top='auto';nav.style.bottom='calc(82px + env(safe-area-inset-bottom))';nav.style.transform='translateX(-50%)';nav.style.width='calc(100vw - 20px)';nav.style.maxWidth='820px';nav.style.margin='0'}
+function run(){clean();navFix()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+new MutationObserver(run).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
+window.addEventListener('resize',navFix);
+})();</script>'''
+    if '</head>' not in s or '</body>' not in s: raise SystemExit('index.html markers not found')
+    s=s.replace('</head>',marker+css+'</head>',1)
+    s=s.replace('</body>',js+'</body>',1)
+    p.write_text(s,encoding='utf-8')
+    print('premium dashboard v6 fix applied')
+else:
+    print('premium dashboard v6 already applied')
