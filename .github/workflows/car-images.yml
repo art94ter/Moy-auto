@@ -1,30 +1,18 @@
-name: Enable automatic car catalog photos
+name: Disable automatic car catalog photos
 on:
   push:
     branches: [main]
 permissions:
   contents: write
 jobs:
-  install:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Inject car image loader
+      - name: Verify catalog loader is disabled
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('index.html')
-          s=p.read_text(encoding='utf-8')
-          tag='<script src="car-image-loader.js"></script>'
-          if tag not in s:
-              s=s.replace('</body>',tag+'</body>',1)
-              p.write_text(s,encoding='utf-8')
-          PY
-      - name: Commit
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html
-          git diff --cached --quiet && exit 0
-          git commit -m "Enable automatic catalog car photos [skip ci]"
-          git push
+          if grep -q 'car-image-loader.js' index.html; then
+            echo 'car-image-loader.js is still referenced in index.html'
+            exit 1
+          fi
+          echo 'Catalog photo loader disabled.'
