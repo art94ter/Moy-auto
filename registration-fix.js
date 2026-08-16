@@ -1,4 +1,4 @@
-// RECOVERY_DEPLOY_V14 — password recovery uses PKCE so Safari and Yandex follow the same flow
+// RECOVERY_DEPLOY_V15 — password recovery + password eyes + dashboard car swipe
 (function(){
   const RESET = new URL('./reset-v11.html', location.href).href;
   function params(){
@@ -70,4 +70,56 @@
   document.head.appendChild(eyeStyle);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addPasswordEyes);else addPasswordEyes();
   new MutationObserver(addPasswordEyes).observe(document.documentElement,{childList:true,subtree:true});
+
+  // 🚗 Переключение автомобилей свайпом влево/вправо на главной карточке.
+  function setupCarSwipe(){
+    const hero=document.getElementById('premiumHero');
+    const select=document.getElementById('topCarSelect')||document.getElementById('carSelect');
+    if(!hero||!select||hero.dataset.swipeReady==='1')return;
+    hero.dataset.swipeReady='1';
+    let startX=0,startY=0,moved=false;
+    function refreshHint(){
+      const count=select.options.length;
+      let hint=hero.querySelector('.car-swipe-hint');
+      if(count<2){if(hint)hint.remove();return;}
+      if(!hint){
+        hint=document.createElement('div');
+        hint.className='car-swipe-hint';
+        hint.innerHTML='<span class="car-swipe-arrows">‹</span><span class="car-swipe-text">Свайп</span><span class="car-swipe-arrows">›</span><span class="car-swipe-dots"></span>';
+        hero.appendChild(hint);
+      }
+      const dots=hint.querySelector('.car-swipe-dots');
+      dots.innerHTML=Array.from(select.options).map((_,i)=>`<i class="${i===select.selectedIndex?'active':''}"></i>`).join('');
+    }
+    function move(delta){
+      const n=select.options.length;
+      if(n<2)return;
+      const next=(select.selectedIndex+delta+n)%n;
+      const id=select.options[next].value;
+      if(typeof window.switchCar==='function')window.switchCar(id);
+      else {select.value=id;select.dispatchEvent(new Event('change',{bubbles:true}));}
+      setTimeout(refreshHint,40);
+    }
+    hero.addEventListener('touchstart',e=>{
+      if(!e.touches.length)return;
+      startX=e.touches[0].clientX;startY=e.touches[0].clientY;moved=false;
+    },{passive:true});
+    hero.addEventListener('touchmove',e=>{
+      if(!e.touches.length)return;
+      const dx=e.touches[0].clientX-startX,dy=e.touches[0].clientY-startY;
+      if(Math.abs(dx)>18&&Math.abs(dx)>Math.abs(dy)*1.15){moved=true;e.preventDefault();}
+    },{passive:false});
+    hero.addEventListener('touchend',e=>{
+      if(!moved)return;
+      const dx=e.changedTouches[0].clientX-startX;
+      if(Math.abs(dx)>=45)move(dx<0?1:-1);
+    },{passive:true});
+    refreshHint();
+    new MutationObserver(refreshHint).observe(select,{childList:true,subtree:true});
+  }
+  const swipeStyle=document.createElement('style');
+  swipeStyle.textContent='.car-swipe-hint{position:absolute;z-index:3;left:50%;bottom:12px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:rgba(7,9,13,.58);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#9da6b4;font-size:10px;letter-spacing:.08em;pointer-events:none;white-space:nowrap}.car-swipe-arrows{font-size:16px;line-height:10px;color:#f0cf91}.car-swipe-text{text-transform:uppercase}.car-swipe-dots{display:flex;gap:3px;margin-left:2px}.car-swipe-dots i{display:block;width:4px;height:4px;border-radius:50%;background:#697382}.car-swipe-dots i.active{background:#f0cf91;transform:scale(1.25)}';
+  document.head.appendChild(swipeStyle);
+  function bootSwipe(){setTimeout(setupCarSwipe,300);setTimeout(setupCarSwipe,1200);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootSwipe);else bootSwipe();
 })();
