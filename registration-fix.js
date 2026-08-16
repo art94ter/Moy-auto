@@ -1,41 +1,118 @@
 (function(){
-  // Keep registration validation, but do not wrap startApp or recovery state.
-  // Recovery is handled by index.html itself. A previous wrapper kept a local
-  // recoveryMode=true after password reset and blocked every normal login.
-  window.signupUser=async function(){
-    const name=(document.getElementById('authName')?.value||'').trim();
-    const email=(document.getElementById('authEmail2')?.value||'').trim().toLowerCase();
-    const password=document.getElementById('authPassword2')?.value||'';
-    if(!email)return authMsg('Введите e-mail.');
-    if(!/^\S+@\S+\.\S+$/.test(email))return authMsg('Введите корректный e-mail.');
-    if(password.length<6)return authMsg('Пароль должен быть не короче 6 символов.');
-    const btn=document.querySelector('#authSignup button[onclick*="signupUser"]');
-    if(btn){btn.disabled=true;btn.textContent='Создаём аккаунт…';}
-    try{
-      const result=await supa.auth.signUp({email,password,options:{data:{full_name:name,name:name},emailRedirectTo:location.origin+location.pathname}});
-      if(result.error){
-        const m=(result.error.message||'').toLowerCase();
-        if(m.includes('already registered')||m.includes('already exists')||m.includes('user already'))return authMsg('Этот e-mail уже зарегистрирован. Войди в аккаунт или используй «Забыли пароль?»');
-        return authMsg(result.error.message||'Не удалось создать аккаунт.');
-      }
-      if(result.data?.session){showAuth('login');document.getElementById('authEmail').value=email;document.getElementById('authPassword').value=password;await loginUser();}
-      else{showAuth('login');authMsg('Аккаунт создан. Проверь почту и подтверди e-mail.');}
-    }catch(e){console.error('SIGNUP ERROR',e);authMsg(e?.message||'Не удалось создать аккаунт.');}
-    finally{if(btn){btn.disabled=false;btn.textContent='Создать аккаунт';}}
+  const RECOVERY_KEY='moy-auto-recovery-v3';
+
+  function isRecoveryUrl(){
+    const qs=new URLSearchParams(location.search);
+    const hs=new URLSearchParams((location.hash||'').replace(/^#/,''));
+    return qs.get('type')==='recovery' || hs.get('type')==='recovery' ||
+           !!hs.get('access_token') || !!hs.get('refresh_token') ||
+           !!qs.get('code');
+  }
+
+  function setRecovery(on){
+    window.recoveryFlow=!!on;
+    try{ sessionStorage.setItem(RECOVERY_KEY,on?'1':'0'); }catch(e){}
+    const app=document.getElementById('appShell');
+    const auth=document.getElementById('authScreen');
+    if(on){
+      if(app) app.style.display='none';
+      if(auth) auth.style.display='grid';
+      if(typeof showAuth==='function') showAuth('recovery');
+    }
+  }
+
+  // Recovery must win over the normal-session startup path.
+  if(isRecoveryUrl()){
+    setRecovery(true);
+  }else{
+    try{ sessionStorage.removeItem(RECOVERY_KEY); }catch(e){}
+  }
+
+  const originalStartApp=window.startApp;
+  window.startApp=async function(user){
+    if(window.recoveryFlow || isRecoveryUrl()){
+      setRecovery(true);
+      return;
+    }
+    return originalStartApp ? originalStartApp(user) : undefined;
   };
 
-  // Remove any previously installed service worker and its caches once.
-  const SW_KEY='moy-auto-clean-sw-v2';
-  async function cleanServiceWorker(){
-    if(!('serviceWorker' in navigator)||sessionStorage.getItem(SW_KEY))return;
+  window.resetPassword=async function(){
+    const email=(document.getElementById('authEmail')?.value||'').trim();
+    if(!email)return authMsg('Сначала введи e-mail.');
+    const btn=document.querySelector('#authLogin button[onclick*="resetPassword"]');
+    if(btn){btn.disabled=true;btn.textContent='Отправляем…';}
     try{
-      sessionStorage.setItem(SW_KEY,'1');
-      const regs=await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(r=>r.unregister()));
-      const keys=await caches.keys();
-      await Promise.all(keys.map(k=>caches.delete(k)));
-      location.reload();
-    }catch(e){console.warn('SW cleanup',e);sessionStorage.removeItem(SW_KEY);}
+      const {error}=await supa.auth.resetPasswordForEmail(email,{
+        redirectTo:location.origin+location.pathname
+      });
+      if(error) return authMsg(error.message||'Не удалось отправить письмо.');
+      authMsg('Письмо отправлено. Открой САМОЕ ПОСЛЕДНЕЕ письмо и нажми ссылку восстановления один раз.');
+    }catch(e){
+      console.error('RECOVERY REQUEST ERROR',e);
+      authMsg(e?.message||'Не удалось отправить письмо.');
+    }finally{
+      if(btn){btn.disabled=false;btn.textContent='Забыли пароль?';}
+    }
+  };
+
+  window.updatePassword=async function(){
+    const p1=document.getElementById('authNewPassword')?.value||'';
+    const p2=document.getElementById('authNewPassword2')?.value||'';
+    if(p1.length<6)return authMsg('Новый пароль должен быть не короче 6 символов.');
+    if(p1!==p2)return authMsg('Пароли не совпадают.');
+
+    const btn=document.querySelector('#authRecovery button[onclick*="updatePassword"]');
+    if(btn){btn.disabled=true;btn.textContent='Сохраняем…';}
+    try{
+      const {error}=await supa.auth.updateUser({password:p1});
+      if(error) return authMsg(error.message||'Не удалось сохранить пароль.');
+
+      window.recoveryFlow=false;
+      try{sessionStorage.removeItem(RECOVERY_KEY);}catch(e){}
+      document.getElementById('authNewPassword').value='';
+      document.getElementById('authNewPassword2').value='';
+
+      await supa.auth.signOut({scope:'local'}).catch(()=>{});
+      const app=document.getElementById('appShell');
+      if(app)app.style.display='none';
+      const auth=document.getElementById('authScreen');
+      if(auth)auth.style.display='grid';
+      showAuth('login');
+      authMsg('Пароль сохранён. Теперь введи e-mail и НОВЫЙ пароль и нажми «Войти».');
+    }catch(e){
+      console.error('UPDATE PASSWORD ERROR',e);
+      authMsg(e?.message||'Не удалось сохранить пароль.');
+    }finally{
+      if(btn){btn.disabled=false;btn.textContent='Сохранить новый пароль';}
+    }
+  };
+
+  // The recovery event is authoritative. Never open the garage while it is active.
+  supa.auth.onAuthStateChange((event,session)=>{
+    if(event==='PASSWORD_RECOVERY'){
+      setRecovery(true);
+      authMsg('Придумай новый пароль.');
+      return;
+    }
+    if(window.recoveryFlow || isRecoveryUrl())return;
+    if(event==='SIGNED_IN' && session?.user && typeof originalStartApp==='function'){
+      originalStartApp(session.user);
+    }
+  });
+
+  // Catch the case where Supabase has already created a session before the listener above.
+  if(isRecoveryUrl()){
+    setRecovery(true);
+    supa.auth.getSession().then(({data})=>{
+      if(data?.session){
+        setRecovery(true);
+        authMsg('Придумай новый пароль.');
+      }
+    }).catch(()=>{});
   }
-  cleanServiceWorker();
+
+  if(typeof window.showAuth==='function' && isRecoveryUrl()){
+    window.showAuth('recovery');
+  }
 })();
