@@ -1,152 +1,23 @@
-// RECOVERY_DEPLOY_V17 — password recovery + password eyes + animated dashboard car swipe + duplicate car block removal
+// RECOVERY_DEPLOY_V18 — password recovery + password eyes + animated dashboard car swipe + duplicate car block removal + garage manager
 (function(){
   const RESET = new URL('./reset-v11.html', location.href).href;
-  function params(){
-    const qs=new URLSearchParams(location.search||'');
-    const hs=new URLSearchParams((location.hash||'').replace(/^#/,''));
-    return {qs,hs};
-  }
-  function isRecoveryUrl(){
-    const {qs,hs}=params();
-    const type=qs.get('type')||hs.get('type');
-    return type==='recovery'||qs.has('token_hash')||hs.has('token_hash')||qs.has('code')||hs.has('code')||hs.has('access_token')||hs.has('refresh_token')||qs.has('confirmation_url');
-  }
-  if(isRecoveryUrl()&&!location.pathname.endsWith('/reset-v11.html')){
-    const target=new URL(RESET);
-    target.search=location.search||'';
-    target.hash=location.hash||'';
-    location.replace(target.href);
-    return;
-  }
+  function params(){const qs=new URLSearchParams(location.search||'');const hs=new URLSearchParams((location.hash||'').replace(/^#/,''));return {qs,hs}}
+  function isRecoveryUrl(){const {qs,hs}=params();const type=qs.get('type')||hs.get('type');return type==='recovery'||qs.has('token_hash')||hs.has('token_hash')||qs.has('code')||hs.has('code')||hs.has('access_token')||hs.has('refresh_token')||qs.has('confirmation_url')}
+  if(isRecoveryUrl()&&!location.pathname.endsWith('/reset-v11.html')){const target=new URL(RESET);target.search=location.search||'';target.hash=location.hash||'';location.replace(target.href);return}
   if(!window.supabase?.createClient)return;
-  const U='https://rimssvnrcpnemeiwptxu.supabase.co';
-  const K='sb_publishable_RjG_mMHnoSt7TpQEyUpaQw_MlK6kNL_';
-  const supa=window.supabase.createClient(U,K,{auth:{flowType:'pkce',autoRefreshToken:true,persistSession:true,detectSessionInUrl:false}});
-  window.resetPassword=async function(){
-    const email=(document.getElementById('authEmail')?.value||'').trim();
-    if(!email){authMsg('Сначала введи e-mail.');return;}
-    const btn=document.querySelector('#authLogin button[onclick*="resetPassword"]');
-    if(btn){btn.disabled=true;btn.textContent='Отправляем…';}
-    try{
-      const {error}=await supa.auth.resetPasswordForEmail(email,{redirectTo:RESET});
-      if(error)throw error;
-      authMsg('Письмо отправлено. Открой самое последнее письмо и перейди по ссылке восстановления.');
-    }catch(e){
-      console.error('RECOVERY REQUEST ERROR',e);
-      authMsg(e?.message||'Не удалось отправить письмо.');
-    }finally{
-      if(btn){btn.disabled=false;btn.textContent='Забыли пароль?';}
-    }
-  };
-
-  // Показывать/скрывать пароль во всех полях type=password.
-  function addPasswordEyes(){
-    document.querySelectorAll('input[type="password"]').forEach(function(input){
-      if(input.dataset.eyeAdded==='1')return;
-      input.dataset.eyeAdded='1';
-      const wrap=document.createElement('span');
-      wrap.className='password-eye-wrap';
-      const parent=input.parentNode;
-      parent.insertBefore(wrap,input);
-      wrap.appendChild(input);
-      const eye=document.createElement('button');
-      eye.type='button';
-      eye.className='password-eye';
-      eye.setAttribute('aria-label','Показать пароль');
-      eye.setAttribute('title','Показать пароль');
-      eye.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-5.5 9.5-5.5 9.5 5.5 9.5 5.5-3.4 5.5-9.5 5.5S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.7"/></svg>';
-      eye.addEventListener('click',function(){
-        const show=input.type==='password';
-        input.type=show?'text':'password';
-        eye.classList.toggle('is-visible',show);
-        eye.setAttribute('aria-label',show?'Скрыть пароль':'Показать пароль');
-        eye.setAttribute('title',show?'Скрыть пароль':'Показать пароль');
-      });
-      wrap.appendChild(eye);
-    });
-  }
-  const eyeStyle=document.createElement('style');
-  eyeStyle.textContent='.password-eye-wrap{position:relative;width:100%;display:block}.password-eye-wrap>input{padding-right:52px!important}.password-eye{position:absolute!important;right:6px;top:50%;transform:translateY(-50%);width:42px!important;min-width:42px!important;height:40px!important;min-height:40px!important;margin:0!important;padding:8px!important;background:transparent!important;border:0!important;box-shadow:none!important;color:#8e98a8!important;display:grid;place-items:center;cursor:pointer}.password-eye:hover{filter:none!important;transform:translateY(-50%)!important;color:#f0cf91!important}.password-eye svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.password-eye.is-visible{color:#f0cf91!important}';
-  document.head.appendChild(eyeStyle);
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addPasswordEyes);else addPasswordEyes();
-  new MutationObserver(addPasswordEyes).observe(document.documentElement,{childList:true,subtree:true});
-
-  // Переключение автомобилей свайпом влево/вправо на главной карточке.
-  function setupCarSwipe(){
-    const hero=document.getElementById('premiumHero');
-    const select=document.getElementById('topCarSelect')||document.getElementById('carSelect');
-    if(!hero||!select||hero.dataset.swipeReady==='1')return;
-    hero.dataset.swipeReady='1';
-    let startX=0,startY=0,moved=false;
-    function refreshHint(){
-      const count=select.options.length;
-      let hint=hero.querySelector('.car-swipe-hint');
-      if(count<2){if(hint)hint.remove();return;}
-      if(!hint){
-        hint=document.createElement('div');
-        hint.className='car-swipe-hint';
-        hint.innerHTML='<span class="car-swipe-arrows">‹</span><span class="car-swipe-text">Свайп</span><span class="car-swipe-arrows">›</span><span class="car-swipe-dots"></span>';
-        hero.appendChild(hint);
-      }
-      const dots=hint.querySelector('.car-swipe-dots');
-      dots.innerHTML=Array.from(select.options).map((_,i)=>`<i class="${i===select.selectedIndex?'active':''}"></i>`).join('');
-    }
-    function move(delta){
-      const n=select.options.length;
-      if(n<2)return;
-      const next=(select.selectedIndex+delta+n)%n;
-      const id=select.options[next].value;
-      hero.classList.remove('car-swipe-left','car-swipe-right');
-      void hero.offsetWidth;
-      hero.classList.add(delta>0?'car-swipe-left':'car-swipe-right');
-      if(typeof window.switchCar==='function')window.switchCar(id);
-      else {select.value=id;select.dispatchEvent(new Event('change',{bubbles:true}));}
-      setTimeout(()=>{
-        hero.classList.remove('car-swipe-left','car-swipe-right');
-        refreshHint();
-      },380);
-    }
-    hero.addEventListener('touchstart',e=>{
-      if(!e.touches.length)return;
-      startX=e.touches[0].clientX;startY=e.touches[0].clientY;moved=false;
-    },{passive:true});
-    hero.addEventListener('touchmove',e=>{
-      if(!e.touches.length)return;
-      const dx=e.touches[0].clientX-startX,dy=e.touches[0].clientY-startY;
-      if(Math.abs(dx)>18&&Math.abs(dx)>Math.abs(dy)*1.15){moved=true;e.preventDefault();}
-    },{passive:false});
-    hero.addEventListener('touchend',e=>{
-      if(!moved)return;
-      const dx=e.changedTouches[0].clientX-startX;
-      if(Math.abs(dx)>=45)move(dx<0?1:-1);
-    },{passive:true});
-    refreshHint();
-    new MutationObserver(refreshHint).observe(select,{childList:true,subtree:true});
-  }
-  const swipeStyle=document.createElement('style');
-  swipeStyle.textContent='.car-swipe-hint{position:absolute;z-index:3;left:50%;bottom:12px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:rgba(7,9,13,.58);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#9da6b4;font-size:10px;letter-spacing:.08em;pointer-events:none;white-space:nowrap}.car-swipe-arrows{font-size:16px;line-height:10px;color:#f0cf91}.car-swipe-text{text-transform:uppercase}.car-swipe-dots{display:flex;gap:3px;margin-left:2px}.car-swipe-dots i{display:block;width:4px;height:4px;border-radius:50%;background:#697382}.car-swipe-dots i.active{background:#f0cf91;transform:scale(1.25)}.car-swipe-left,.car-swipe-right{transition:transform .34s cubic-bezier(.22,.61,.36,1),opacity .34s ease,filter .34s ease}.car-swipe-left{animation:carSwipeLeft .36s cubic-bezier(.22,.61,.36,1)}.car-swipe-right{animation:carSwipeRight .36s cubic-bezier(.22,.61,.36,1)}@keyframes carSwipeLeft{0%{transform:translateX(0);opacity:1}45%{transform:translateX(-28px);opacity:.35}100%{transform:translateX(0);opacity:1}}@keyframes carSwipeRight{0%{transform:translateX(0);opacity:1}45%{transform:translateX(28px);opacity:.35}100%{transform:translateX(0);opacity:1}}';
-  document.head.appendChild(swipeStyle);
-
-  // Убираем дублирующие блоки выбора/профиля автомобиля на главной — основным остаётся hero-карточка.
-  const garageStyle=document.createElement('style');
-  garageStyle.textContent='.top-garage-menu{display:none!important}.card:has(#dashCar){display:none!important}';
-  document.head.appendChild(garageStyle);
-
-  // Дополнительно удаляем старую карточку напрямую — это надёжнее CSS :has() на старых/закэшированных версиях Safari.
-  function removeDuplicateCarCard(){
-    const dash=document.getElementById('dashCar');
-    if(!dash)return;
-    const card=dash.closest('.card');
-    if(card)card.remove();
-  }
-
-  function bootSwipe(){
-    removeDuplicateCarCard();
-    setTimeout(removeDuplicateCarCard,300);
-    setTimeout(setupCarSwipe,300);
-    setTimeout(setupCarSwipe,1200);
-    setTimeout(removeDuplicateCarCard,1200);
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootSwipe);else bootSwipe();
-  new MutationObserver(removeDuplicateCarCard).observe(document.documentElement,{childList:true,subtree:true});
+  const U='https://rimssvnrcpnemeiwptxu.supabase.co';const K='sb_publishable_RjG_mMHnoSt7TpQEyUpaQw_MlK6kNL_';const supa=window.supabase.createClient(U,K,{auth:{flowType:'pkce',autoRefreshToken:true,persistSession:true,detectSessionInUrl:false}});
+  window.resetPassword=async function(){const email=(document.getElementById('authEmail')?.value||'').trim();if(!email){authMsg('Сначала введи e-mail.');return}const btn=document.querySelector('#authLogin button[onclick*="resetPassword"]');if(btn){btn.disabled=true;btn.textContent='Отправляем…'}try{const {error}=await supa.auth.resetPasswordForEmail(email,{redirectTo:RESET});if(error)throw error;authMsg('Письмо отправлено. Открой самое последнее письмо и перейди по ссылке восстановления.')}catch(e){console.error('RECOVERY REQUEST ERROR',e);authMsg(e?.message||'Не удалось отправить письмо.')}finally{if(btn){btn.disabled=false;btn.textContent='Забыли пароль?'}}};
+  function addPasswordEyes(){document.querySelectorAll('input[type="password"]').forEach(function(input){if(input.dataset.eyeAdded==='1')return;input.dataset.eyeAdded='1';const wrap=document.createElement('span');wrap.className='password-eye-wrap';const parent=input.parentNode;parent.insertBefore(wrap,input);wrap.appendChild(input);const eye=document.createElement('button');eye.type='button';eye.className='password-eye';eye.setAttribute('aria-label','Показать пароль');eye.setAttribute('title','Показать пароль');eye.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-5.5 9.5-5.5 9.5 5.5 9.5 5.5-3.4 5.5-9.5 5.5S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.7"/></svg>';eye.addEventListener('click',function(){const show=input.type==='password';input.type=show?'text':'password';eye.classList.toggle('is-visible',show);eye.setAttribute('aria-label',show?'Скрыть пароль':'Показать пароль');eye.setAttribute('title',show?'Скрыть пароль':'Показать пароль')});wrap.appendChild(eye)})}
+  const eyeStyle=document.createElement('style');eyeStyle.textContent='.password-eye-wrap{position:relative;width:100%;display:block}.password-eye-wrap>input{padding-right:52px!important}.password-eye{position:absolute!important;right:6px;top:50%;transform:translateY(-50%);width:42px!important;min-width:42px!important;height:40px!important;min-height:40px!important;margin:0!important;padding:8px!important;background:transparent!important;border:0!important;box-shadow:none!important;color:#8e98a8!important;display:grid;place-items:center;cursor:pointer}.password-eye:hover{filter:none!important;transform:translateY(-50%)!important;color:#f0cf91!important}.password-eye svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.password-eye.is-visible{color:#f0cf91!important}';document.head.appendChild(eyeStyle);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addPasswordEyes);else addPasswordEyes();new MutationObserver(addPasswordEyes).observe(document.documentElement,{childList:true,subtree:true});
+  function setupCarSwipe(){const hero=document.getElementById('premiumHero');const select=document.getElementById('topCarSelect')||document.getElementById('carSelect');if(!hero||!select||hero.dataset.swipeReady==='1')return;hero.dataset.swipeReady='1';let startX=0,startY=0,moved=false;function refreshHint(){const count=select.options.length;let hint=hero.querySelector('.car-swipe-hint');if(count<2){if(hint)hint.remove();return}if(!hint){hint=document.createElement('div');hint.className='car-swipe-hint';hint.innerHTML='<span class="car-swipe-arrows">‹</span><span class="car-swipe-text">Свайп</span><span class="car-swipe-arrows">›</span><span class="car-swipe-dots"></span>';hero.appendChild(hint)}hint.querySelector('.car-swipe-dots').innerHTML=Array.from(select.options).map((_,i)=>`<i class="${i===select.selectedIndex?'active':''}"></i>`).join('')}function move(delta){const n=select.options.length;if(n<2)return;const next=(select.selectedIndex+delta+n)%n;const id=select.options[next].value;hero.classList.remove('car-swipe-left','car-swipe-right');void hero.offsetWidth;hero.classList.add(delta>0?'car-swipe-left':'car-swipe-right');if(typeof window.switchCar==='function')window.switchCar(id);else{select.value=id;select.dispatchEvent(new Event('change',{bubbles:true}))}setTimeout(()=>{hero.classList.remove('car-swipe-left','car-swipe-right');refreshHint()},380)}hero.addEventListener('touchstart',e=>{if(!e.touches.length)return;startX=e.touches[0].clientX;startY=e.touches[0].clientY;moved=false},{passive:true});hero.addEventListener('touchmove',e=>{if(!e.touches.length)return;const dx=e.touches[0].clientX-startX,dy=e.touches[0].clientY-startY;if(Math.abs(dx)>18&&Math.abs(dx)>Math.abs(dy)*1.15){moved=true;e.preventDefault()}},{passive:false});hero.addEventListener('touchend',e=>{if(!moved)return;const dx=e.changedTouches[0].clientX-startX;if(Math.abs(dx)>=45)move(dx<0?1:-1)},{passive:true});refreshHint();new MutationObserver(refreshHint).observe(select,{childList:true,subtree:true})}
+  const swipeStyle=document.createElement('style');swipeStyle.textContent='.car-swipe-hint{position:absolute;z-index:3;left:50%;bottom:12px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:rgba(7,9,13,.58);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#9da6b4;font-size:10px;letter-spacing:.08em;pointer-events:none;white-space:nowrap}.car-swipe-arrows{font-size:16px;line-height:10px;color:#f0cf91}.car-swipe-text{text-transform:uppercase}.car-swipe-dots{display:flex;gap:3px;margin-left:2px}.car-swipe-dots i{display:block;width:4px;height:4px;border-radius:50%;background:#697382}.car-swipe-dots i.active{background:#f0cf91;transform:scale(1.25)}.car-swipe-left,.car-swipe-right{transition:transform .34s cubic-bezier(.22,.61,.36,1),opacity .34s ease,filter .34s ease}.car-swipe-left{animation:carSwipeLeft .36s cubic-bezier(.22,.61,.36,1)}.car-swipe-right{animation:carSwipeRight .36s cubic-bezier(.22,.61,.36,1)}@keyframes carSwipeLeft{0%{transform:translateX(0);opacity:1}45%{transform:translateX(-28px);opacity:.35}100%{transform:translateX(0);opacity:1}}@keyframes carSwipeRight{0%{transform:translateX(0);opacity:1}45%{transform:translateX(28px);opacity:.35}100%{transform:translateX(0);opacity:1}}';document.head.appendChild(swipeStyle);
+  const garageStyle=document.createElement('style');garageStyle.textContent='.top-garage-menu{display:none!important}.card:has(#dashCar){display:none!important}';document.head.appendChild(garageStyle);function removeDuplicateCarCard(){const dash=document.getElementById('dashCar');if(!dash)return;const card=dash.closest('.card');if(card)card.remove()}
+  const garageManagerStyle=document.createElement('style');garageManagerStyle.textContent='.garage-manager{margin-top:0!important}.garage-manager .garage-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}.garage-manager .garage-head h2{margin:0 0 5px!important}.garage-manager .garage-count{font-size:10px;font-weight:800;letter-spacing:.12em;color:#f0cf91;padding:7px 9px;border-radius:999px;background:rgba(215,177,109,.09);border:1px solid rgba(215,177,109,.14);white-space:nowrap}.garage-list{display:grid;gap:9px}.garage-car-row{display:flex;align-items:center;gap:11px;padding:13px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.075);transition:border-color .18s ease,background .18s ease,transform .18s ease}.garage-car-row.active{border-color:rgba(215,177,109,.42);background:rgba(215,177,109,.065)}.garage-car-icon{width:42px;height:42px;flex:0 0 42px;border-radius:13px;display:grid;place-items:center;background:rgba(215,177,109,.1);font-size:20px}.garage-car-info{min-width:0;flex:1;cursor:pointer}.garage-car-name{font-weight:780;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.garage-car-meta{margin-top:3px;color:#8993a3;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.garage-main-badge{display:inline-flex;margin-top:5px;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#f0cf91}.garage-row-actions{display:flex;gap:6px;flex:0 0 auto}.garage-row-actions button{width:auto;min-width:42px;min-height:40px;margin:0!important;padding:8px 10px!important;font-size:11px!important}.garage-edit{margin-top:16px;padding-top:18px;border-top:1px solid rgba(255,255,255,.07)}.garage-edit-title{font-size:15px;font-weight:780;margin-bottom:10px}.garage-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.garage-form-grid input{margin:0!important}.garage-edit input{margin:0 0 8px!important}.garage-edit .garage-save{margin-top:3px!important}.garage-add{margin-top:12px!important}@media(max-width:600px){.garage-row-actions button{min-width:38px;padding:8px!important}}';document.head.appendChild(garageManagerStyle);
+  let garageManagerNode=null,garageSnapshot='';function garageData(){try{return {cars:db?.cars||[],active:db?.activeCarId||''}}catch(e){return {cars:[],active:''}}}function carLabel(c){return c?.car?.name||'Мой автомобиль'}function carMeta(c){const parts=[c?.car?.year,c?.car?.engine,c?.car?.plate].filter(Boolean);const km=Number(c?.car?.km||0).toLocaleString('ru-RU')+' км';return parts.length?parts.join(' · ')+' · '+km:km}function escLocal(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function hideOldGarageCards(){const select=document.getElementById('carSelect'),name=document.getElementById('carName');[select?.closest('.card'),name?.closest('.card')].forEach(el=>{if(el)el.style.display='none'})}
+  function ensureGarageManager(){const dataView=document.getElementById('data');if(!dataView)return;hideOldGarageCards();if(garageManagerNode&&!garageManagerNode.isConnected)garageManagerNode=null;if(!garageManagerNode){garageManagerNode=document.createElement('div');garageManagerNode.className='card garage-manager';const notes=document.getElementById('notes'),anchor=notes?.closest('.card');if(anchor)anchor.parentNode.insertBefore(garageManagerNode,anchor);else dataView.appendChild(garageManagerNode)}renderGarageManager()}
+  function renderGarageManager(){if(!garageManagerNode)return;const {cars}=garageData();const activeObj=cars.find(c=>c.id===db.activeCarId)||cars[0];if(activeObj&&db.activeCarId!==activeObj.id)db.activeCarId=activeObj.id;const list=cars.map(c=>{const isActive=c.id===db.activeCarId;return `<div class="garage-car-row ${isActive?'active':''}"><div class="garage-car-icon">🚗</div><div class="garage-car-info" data-garage-select="${escLocal(c.id)}"><div class="garage-car-name">${escLocal(carLabel(c))}</div><div class="garage-car-meta">${escLocal(carMeta(c))}</div>${isActive?'<div class="garage-main-badge">Основная</div>':''}</div><div class="garage-row-actions">${isActive?'':'<button class="secondary" data-garage-main="'+escLocal(c.id)+'">Выбрать</button>'}<button class="danger" data-garage-delete="${escLocal(c.id)}" ${cars.length<=1?'disabled':''}>Удалить</button></div></div>`}).join('');const a=activeObj?.car||{};garageManagerNode.innerHTML=`<div class="garage-head"><div><h2>Мои автомобили</h2><div class="small">Выбери автомобиль — он станет основным и появится на главной.</div></div><span class="garage-count">${cars.length} ${cars.length===1?'АВТОМОБИЛЬ':cars.length<5?'АВТОМОБИЛЯ':'АВТОМОБИЛЕЙ'}</span></div><div class="garage-list">${list||'<div class="small">Автомобилей пока нет.</div>'}</div><button class="garage-add" data-garage-add>+ Добавить автомобиль</button>${activeObj?`<div class="garage-edit"><div class="garage-edit-title">Редактировать · ${escLocal(carLabel(activeObj))}</div><input data-gf="name" value="${escLocal(a.name||'')}" placeholder="Марка и модель"><div class="garage-form-grid"><input data-gf="year" type="number" value="${escLocal(a.year||'')}" placeholder="Год"><input data-gf="km" type="number" value="${escLocal(a.km||'')}" placeholder="Пробег"></div><div class="garage-form-grid"><input data-gf="plate" value="${escLocal(a.plate||'')}" placeholder="Госномер"><input data-gf="vin" value="${escLocal(a.vin||'')}" placeholder="VIN"></div><div class="garage-form-grid"><input data-gf="engine" value="${escLocal(a.engine||'')}" placeholder="Двигатель"><input data-gf="fuel" value="${escLocal(a.fuel||'')}" placeholder="Топливо"></div><input data-gf="gear" value="${escLocal(a.gear||'')}" placeholder="Коробка"><button class="garage-save" data-garage-save>Сохранить изменения</button></div>`:''}`;garageSnapshot=JSON.stringify({ids:cars.map(c=>c.id),active:db.activeCarId,names:cars.map(carLabel),kms:cars.map(c=>c.car?.km)});garageManagerNode.querySelectorAll('[data-garage-select]').forEach(el=>el.addEventListener('click',()=>selectGarageCar(el.dataset.garageSelect)));garageManagerNode.querySelectorAll('[data-garage-main]').forEach(btn=>btn.addEventListener('click',()=>selectGarageCar(btn.dataset.garageMain)));garageManagerNode.querySelectorAll('[data-garage-delete]').forEach(btn=>btn.addEventListener('click',()=>deleteGarageCar(btn.dataset.garageDelete)));garageManagerNode.querySelector('[data-garage-add]')?.addEventListener('click',addGarageCar);garageManagerNode.querySelector('[data-garage-save]')?.addEventListener('click',saveGarageCar)}
+  function selectGarageCar(id){if(typeof window.switchCar==='function')window.switchCar(id);else if(db.cars.some(c=>c.id===id)){db.activeCarId=id;persist()}setTimeout(renderGarageManager,80)}function addGarageCar(){if(typeof window.newCar!=='function')return;const c=newCar();db.cars.push(c);db.activeCarId=c.id;persist();setTimeout(()=>{ensureGarageManager();document.getElementById('data')?.scrollIntoView({behavior:'smooth',block:'start'})},100)}function deleteGarageCar(id){const c=db.cars.find(x=>x.id===id);if(!c||db.cars.length<=1)return;if(!confirm('Удалить '+carLabel(c)+' и всю его историю?'))return;db.cars=db.cars.filter(x=>x.id!==id);if(db.activeCarId===id)db.activeCarId=db.cars[0].id;persist();setTimeout(renderGarageManager,100)}function saveGarageCar(){const c=activeCar();if(!c)return;const val=k=>garageManagerNode.querySelector(`[data-gf="${k}"]`)?.value||'';c.car={name:val('name').trim(),year:+val('year')||'',km:+val('km')||0,plate:val('plate').trim(),vin:val('vin').trim(),engine:val('engine').trim(),fuel:val('fuel').trim(),gear:val('gear').trim()};persist();setTimeout(renderGarageManager,100)}
+  function bootGarage(){ensureGarageManager()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bootGarage,500));else setTimeout(bootGarage,500);setInterval(()=>{if(!document.getElementById('data'))return;hideOldGarageCards();const {cars,active}=garageData();const snap=JSON.stringify({ids:cars.map(c=>c.id),active,names:cars.map(carLabel),kms:cars.map(c=>c.car?.km)});if(snap!==garageSnapshot)ensureGarageManager()},700);
+  function bootSwipe(){removeDuplicateCarCard();setTimeout(removeDuplicateCarCard,300);setTimeout(setupCarSwipe,300);setTimeout(setupCarSwipe,1200);setTimeout(removeDuplicateCarCard,1200)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootSwipe);else bootSwipe();new MutationObserver(removeDuplicateCarCard).observe(document.documentElement,{childList:true,subtree:true});
 })();
