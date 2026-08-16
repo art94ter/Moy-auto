@@ -1,27 +1,27 @@
-// RECOVERY_DEPLOY_V11 — single recovery entry point
+// RECOVERY_DEPLOY_V12 — dedicated recovery page, no browser-bound recovery state
 (function(){
-  const RESET = new URL('./reset.html?v=11', location.href).href;
+  const RESET = new URL('./reset-v11.html', location.href).href;
   function params(){
-    const qs = new URLSearchParams(location.search || '');
-    const hs = new URLSearchParams((location.hash || '').replace(/^#/, ''));
-    return {qs, hs};
+    const qs=new URLSearchParams(location.search||'');
+    const hs=new URLSearchParams((location.hash||'').replace(/^#/,''));
+    return {qs,hs};
   }
   function isRecoveryUrl(){
-    const {qs, hs} = params();
-    const type = qs.get('type') || hs.get('type');
-    return type === 'recovery' || qs.has('token_hash') || hs.has('token_hash') || qs.has('code') || hs.has('code') || hs.has('access_token') || hs.has('refresh_token') || qs.has('confirmation_url');
+    const {qs,hs}=params();
+    const type=qs.get('type')||hs.get('type');
+    return type==='recovery'||qs.has('token_hash')||hs.has('token_hash')||qs.has('code')||hs.has('code')||hs.has('access_token')||hs.has('refresh_token')||qs.has('confirmation_url');
   }
-  if(isRecoveryUrl() && !location.pathname.endsWith('/reset.html')){
-    const target = new URL(RESET);
-    target.search = location.search || '';
-    target.hash = location.hash || '';
+  if(isRecoveryUrl()&&!location.pathname.endsWith('/reset-v11.html')){
+    const target=new URL(RESET);
+    target.search=location.search||'';
+    target.hash=location.hash||'';
     location.replace(target.href);
     return;
   }
-  if(!window.supabase?.createClient) return;
+  if(!window.supabase?.createClient)return;
   const U='https://rimssvnrcpnemeiwptxu.supabase.co';
   const K='sb_publishable_RjG_mMHnoSt7TpQEyUpaQw_MlK6kNL_';
-  const supa=window.supabase.createClient(U,K,{auth:{flowType:'pkce',autoRefreshToken:true,persistSession:true,detectSessionInUrl:false}});
+  const supa=window.supabase.createClient(U,K,{auth:{flowType:'implicit',autoRefreshToken:true,persistSession:true,detectSessionInUrl:false}});
   window.resetPassword=async function(){
     const email=(document.getElementById('authEmail')?.value||'').trim();
     if(!email){authMsg('Сначала введи e-mail.');return;}
