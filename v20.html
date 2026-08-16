@@ -1,0 +1,3 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Мой Авто</title></head><body><div style="padding:24px;font-family:-apple-system,BlinkMacSystemFont,sans-serif">Загрузка новой версии…</div><script>
+(async()=>{try{history.replaceState({},'', './');const r=await fetch('./index.html?source=v20&ts='+Date.now(),{cache:'no-store'});let html=await r.text();html=html.replace('./registration-fix.js?v=9','./registration-fix.js?v=20');document.open();document.write(html);document.close()}catch(e){document.body.innerHTML='<div style="padding:24px;font-family:sans-serif">Не удалось загрузить приложение. Обнови страницу.</div>';console.error(e)}})();
+</script></body></html>
