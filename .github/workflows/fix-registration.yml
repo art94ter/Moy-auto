@@ -1,0 +1,67 @@
+name: Fix registration flow
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, 'Fix registration flow') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Patch signup function
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          marker = '</script>'
+          code = r'''<script id="registration-fix">
+async function signupUser(){
+  const name=document.getElementById('authName')?.value.trim()||'';
+  const email=document.getElementById('authEmail2')?.value.trim().toLowerCase()||'';
+  const password=document.getElementById('authPassword2')?.value||'';
+  if(!email)return authMsg('Введите e-mail.');
+  if(!/^\\S+@\\S+\\.\\S+$/.test(email))return authMsg('Введите корректный e-mail.');
+  if(password.length<6)return authMsg('Пароль должен быть не короче 6 символов.');
+  const btn=document.querySelector('#authSignup button[onclick*="signupUser"]');
+  if(btn){btn.disabled=true;btn.dataset.oldText=btn.textContent;btn.textContent='Создаём аккаунт…';}
+  try{
+    const {data,error}=await supa.auth.signUp({email,password,options:{data:{full_name:name,name:name}}});
+    if(error){
+      const m=(error.message||'').toLowerCase();
+      if(m.includes('already registered')||m.includes('already exists')||m.includes('user already'))return authMsg('Этот e-mail уже зарегистрирован. Войди в аккаунт или используй «Забыли пароль?»');
+      return authMsg(error.message);
+    }
+    if(data?.session){
+      showAuth('login');
+      document.getElementById('authEmail').value=email;
+      document.getElementById('authPassword').value=password;
+      await loginUser();
+      return;
+    }
+    showAuth('login');
+    authMsg('Аккаунт создан. Теперь войди с новым паролем.');
+  }catch(e){
+    console.error('signupUser',e);
+    authMsg('Не удалось создать аккаунт. Попробуй ещё раз.');
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent=btn.dataset.oldText||'Создать аккаунт';}
+  }
+}
+</script>'''
+          if 'function signupUser()' in s:
+              raise SystemExit('signupUser already exists')
+          idx=s.rfind(marker)
+          if idx<0: raise SystemExit('script marker not found')
+          s=s[:idx]+code+s[idx:]
+          p.write_text(s,encoding='utf-8')
+      - name: Commit patch and remove workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .github/workflows/fix-registration.yml
+          git add index.html .github/workflows/fix-registration.yml
+          git commit -m "Fix registration flow"
+          git push
