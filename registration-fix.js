@@ -1,9 +1,12 @@
-// RECOVERY_DEPLOY_V5
+// RECOVERY_DEPLOY_V6
 (function(){
-  // Recovery must be driven by a real Supabase Auth session, never by a
-  // persistent "pending" flag. The previous flag could leave the app stuck
-  // on the new-password screen with "Auth session missing!" after a failed
-  // or already-consumed reset link.
+  // Password-recovery links can arrive in two Supabase formats:
+  // 1) PKCE: ?code=...
+  // 2) email OTP: ?token_hash=...&type=recovery
+  // 3) implicit: #access_token=...&refresh_token=...
+  // The previous version did not verify token_hash, so the link opened the
+  // normal login screen even though the email link was valid.
+
   const OLD_KEYS=[
     'moy-auto-recovery-v1','moy-auto-recovery-v2','moy-auto-recovery-v3',
     'moy-auto-recovery-v4','moy-auto-recovery-pending-v4'
@@ -27,10 +30,12 @@
     return qs.get('type')==='recovery' ||
       qs.get('type')==='password_recovery' ||
       qs.has('code') ||
+      qs.has('token_hash') ||
       hs.get('type')==='recovery' ||
       hs.has('access_token') ||
       hs.has('refresh_token') ||
-      hs.has('code');
+      hs.has('code') ||
+      hs.has('token_hash');
   }
 
   function setRecoveryUI(){
@@ -52,16 +57,31 @@
   }
 
   async function sessionFromCallback(){
-    // 1) Prefer the session already established by Supabase's automatic URL
-    //    detection. This is the normal implicit-flow password recovery path.
+    // A recovery URL must be consumed before we fall back to the normal login.
+    const {qs,hs}=recoveryParams();
+
+    // 1) Supabase may already have established the session automatically.
     try{
       const {data}=await supa.auth.getSession();
       if(data?.session)return data.session;
     }catch(e){console.warn('RECOVERY GET SESSION',e)}
 
-    const {qs,hs}=recoveryParams();
+    // 2) Email recovery links commonly contain token_hash + type=recovery.
+    //    Explicitly verify them so Safari/Yandex both establish the session.
+    const tokenHash=qs.get('token_hash') || hs.get('token_hash');
+    const type=qs.get('type') || hs.get('type');
+    if(tokenHash && (type==='recovery' || type==='password_recovery')){
+      try{
+        const {data,error}=await supa.auth.verifyOtp({
+          token_hash:tokenHash,
+          type:'recovery'
+        });
+        if(!error && data?.session)return data.session;
+        console.warn('RECOVERY TOKEN VERIFY',error);
+      }catch(e){console.warn('RECOVERY TOKEN VERIFY EXCEPTION',e)}
+    }
 
-    // 2) If a PKCE-style code is present, exchange it explicitly.
+    // 3) PKCE callback.
     const code=qs.get('code');
     if(code){
       try{
@@ -71,9 +91,7 @@
       }catch(e){console.warn('RECOVERY CODE EXCHANGE EXCEPTION',e)}
     }
 
-    // 3) If the callback contains an implicit-flow token pair, explicitly set
-    //    it on the main client. This also repairs cases where URL detection
-    //    raced the page initialization.
+    // 4) Implicit-flow callback.
     const accessToken=hs.get('access_token');
     const refreshToken=hs.get('refresh_token');
     if(accessToken && refreshToken){
@@ -87,9 +105,8 @@
       }catch(e){console.warn('RECOVERY SET SESSION EXCEPTION',e)}
     }
 
-    // Give Supabase's initialization/listener a moment to finish if it was
-    // already consuming the callback URL in parallel.
-    for(let i=0;i<8;i++){
+    // Give Supabase's initialization/listener a moment to finish.
+    for(let i=0;i<12;i++){
       await new Promise(r=>setTimeout(r,150));
       try{
         const {data}=await supa.auth.getSession();
@@ -103,7 +120,7 @@
     const session=await sessionFromCallback();
     if(!session){
       clearRecoveryUI();
-      authMsg('Ссылка восстановления уже использована или недействительна. Запроси новое письмо и открой его один раз.');
+      authMsg('Ссылка восстановления не была подтверждена. Запроси новое письмо и открой ссылку один раз.');
       return false;
     }
     setRecoveryUI();
@@ -111,8 +128,6 @@
     return true;
   }
 
-  // Remove all stale flags created by previous recovery patches. A normal
-  // visit must always show the normal login screen, not a fake recovery page.
   clearOldRecoveryState();
 
   const originalStartApp=window.startApp;
@@ -123,8 +138,13 @@
     return originalStartApp ? originalStartApp(user) : undefined;
   };
 
-  // Password reset request: keep the existing implicit flow so the link can
-  // be opened in either Safari or Yandex without a PKCE verifier mismatch.
+  // IMPORTANT: start the recovery flow immediately when a reset link opens.
+  // Previously this only happened after startApp/auth callbacks, which left
+  // Safari on the ordinary login screen when no session event fired.
+  if(urlHasRecovery()){
+    setTimeout(()=>{void enterRecovery();},0);
+  }
+
   window.resetPassword=async function(){
     const email=(document.getElementById('authEmail')?.value||'').trim();
     if(!email)return authMsg('Сначала введи e-mail.');
@@ -152,8 +172,6 @@
     const btn=document.querySelector('#authRecovery button[onclick*="updatePassword"]');
     if(btn){btn.disabled=true;btn.textContent='Сохраняем…';}
     try{
-      // Never call updateUser blindly. First make sure a real recovery session
-      // exists; otherwise Supabase correctly returns "Auth session missing!".
       const session=await sessionFromCallback();
       if(!session){
         clearRecoveryUI();
@@ -198,10 +216,4 @@
       originalStartApp(session.user);
     }
   });
-
-  // Handle the callback after the page has loaded. Do not enter recovery just
-  // because a flag exists in storage: only a valid Auth session can do that.
-  if(urlHasRecovery()){
-    void enterRecovery();
-  }
 })();
