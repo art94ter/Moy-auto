@@ -1,3 +1,4 @@
+// RECOVERY_DEPLOY_V3
 (function(){
   const RECOVERY_KEY='moy-auto-recovery-v3';
 
@@ -21,7 +22,6 @@
     }
   }
 
-  // Recovery must win over the normal-session startup path.
   if(isRecoveryUrl()){
     setRecovery(true);
   }else{
@@ -88,7 +88,6 @@
     }
   };
 
-  // The recovery event is authoritative. Never open the garage while it is active.
   supa.auth.onAuthStateChange((event,session)=>{
     if(event==='PASSWORD_RECOVERY'){
       setRecovery(true);
@@ -101,7 +100,6 @@
     }
   });
 
-  // Catch the case where Supabase has already created a session before the listener above.
   if(isRecoveryUrl()){
     setRecovery(true);
     supa.auth.getSession().then(({data})=>{
