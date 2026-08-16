@@ -1,4 +1,4 @@
-// RECOVERY_DEPLOY_V15 — password recovery + password eyes + dashboard car swipe
+// RECOVERY_DEPLOY_V16 — password recovery + password eyes + animated dashboard car swipe
 (function(){
   const RESET = new URL('./reset-v11.html', location.href).href;
   function params(){
@@ -96,9 +96,15 @@
       if(n<2)return;
       const next=(select.selectedIndex+delta+n)%n;
       const id=select.options[next].value;
+      hero.classList.remove('car-swipe-left','car-swipe-right');
+      void hero.offsetWidth;
+      hero.classList.add(delta>0?'car-swipe-left':'car-swipe-right');
       if(typeof window.switchCar==='function')window.switchCar(id);
       else {select.value=id;select.dispatchEvent(new Event('change',{bubbles:true}));}
-      setTimeout(refreshHint,40);
+      setTimeout(()=>{
+        hero.classList.remove('car-swipe-left','car-swipe-right');
+        refreshHint();
+      },380);
     }
     hero.addEventListener('touchstart',e=>{
       if(!e.touches.length)return;
@@ -118,8 +124,14 @@
     new MutationObserver(refreshHint).observe(select,{childList:true,subtree:true});
   }
   const swipeStyle=document.createElement('style');
-  swipeStyle.textContent='.car-swipe-hint{position:absolute;z-index:3;left:50%;bottom:12px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:rgba(7,9,13,.58);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#9da6b4;font-size:10px;letter-spacing:.08em;pointer-events:none;white-space:nowrap}.car-swipe-arrows{font-size:16px;line-height:10px;color:#f0cf91}.car-swipe-text{text-transform:uppercase}.car-swipe-dots{display:flex;gap:3px;margin-left:2px}.car-swipe-dots i{display:block;width:4px;height:4px;border-radius:50%;background:#697382}.car-swipe-dots i.active{background:#f0cf91;transform:scale(1.25)}';
+  swipeStyle.textContent='.car-swipe-hint{position:absolute;z-index:3;left:50%;bottom:12px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:rgba(7,9,13,.58);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#9da6b4;font-size:10px;letter-spacing:.08em;pointer-events:none;white-space:nowrap}.car-swipe-arrows{font-size:16px;line-height:10px;color:#f0cf91}.car-swipe-text{text-transform:uppercase}.car-swipe-dots{display:flex;gap:3px;margin-left:2px}.car-swipe-dots i{display:block;width:4px;height:4px;border-radius:50%;background:#697382}.car-swipe-dots i.active{background:#f0cf91;transform:scale(1.25)}.car-swipe-left,.car-swipe-right{transition:transform .34s cubic-bezier(.22,.61,.36,1),opacity .34s ease,filter .34s ease}.car-swipe-left{animation:carSwipeLeft .36s cubic-bezier(.22,.61,.36,1)}.car-swipe-right{animation:carSwipeRight .36s cubic-bezier(.22,.61,.36,1)}@keyframes carSwipeLeft{0%{transform:translateX(0);opacity:1}45%{transform:translateX(-28px);opacity:.35}100%{transform:translateX(0);opacity:1}}@keyframes carSwipeRight{0%{transform:translateX(0);opacity:1}45%{transform:translateX(28px);opacity:.35}100%{transform:translateX(0);opacity:1}}';
   document.head.appendChild(swipeStyle);
+
+  // Убираем дублирующий верхний блок выбора автомобиля — основным остаётся hero-карточка.
+  const garageStyle=document.createElement('style');
+  garageStyle.textContent='.top-garage-menu{display:none!important}';
+  document.head.appendChild(garageStyle);
+
   function bootSwipe(){setTimeout(setupCarSwipe,300);setTimeout(setupCarSwipe,1200);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootSwipe);else bootSwipe();
 })();
