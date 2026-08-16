@@ -1,4 +1,4 @@
-// RECOVERY_DEPLOY_V12 — dedicated recovery page, no browser-bound recovery state
+// RECOVERY_DEPLOY_V13 — password recovery uses PKCE so Safari and Yandex follow the same flow
 (function(){
   const RESET = new URL('./reset-v11.html', location.href).href;
   function params(){
@@ -21,7 +21,7 @@
   if(!window.supabase?.createClient)return;
   const U='https://rimssvnrcpnemeiwptxu.supabase.co';
   const K='sb_publishable_RjG_mMHnoSt7TpQEyUpaQw_MlK6kNL_';
-  const supa=window.supabase.createClient(U,K,{auth:{flowType:'implicit',autoRefreshToken:true,persistSession:true,detectSessionInUrl:false}});
+  const supa=window.supabase.createClient(U,K,{auth:{flowType:'pkce',autoRefreshToken:true,persistSession:true,detectSessionInUrl:false}});
   window.resetPassword=async function(){
     const email=(document.getElementById('authEmail')?.value||'').trim();
     if(!email){authMsg('Сначала введи e-mail.');return;}
@@ -30,7 +30,7 @@
     try{
       const {error}=await supa.auth.resetPasswordForEmail(email,{redirectTo:RESET});
       if(error)throw error;
-      authMsg('Письмо отправлено. Открой самое последнее письмо и нажми «Продолжить восстановление».');
+      authMsg('Письмо отправлено. Открой самое последнее письмо и перейди по ссылке восстановления.');
     }catch(e){
       console.error('RECOVERY REQUEST ERROR',e);
       authMsg(e?.message||'Не удалось отправить письмо.');
