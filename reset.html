@@ -6,15 +6,20 @@
 <meta name="theme-color" content="#07090d">
 <title>Мой Авто — Новый пароль</title>
 <style>
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(800px 450px at 50% 0,rgba(215,177,109,.16),transparent 65%),#07090d;color:#f5f7fa;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;display:grid;place-items:center;padding:22px}.box{width:min(440px,100%);padding:30px 24px;border-radius:30px;background:linear-gradient(145deg,rgba(21,26,35,.98),rgba(11,14,20,.98));border:1px solid rgba(255,255,255,.09);box-shadow:0 30px 100px rgba(0,0,0,.55)}.mark{font-size:11px;font-weight:850;letter-spacing:.2em;color:#f0cc8b;text-transform:uppercase}.title{font-size:36px;line-height:1;margin:9px 0 8px;letter-spacing:-.055em}.sub{color:#8e98a8;line-height:1.45;margin-bottom:24px}input,button{width:100%;font:inherit;border-radius:14px;padding:13px;margin:6px 0}input{background:rgba(255,255,255,.045);color:#fff;border:1px solid rgba(255,255,255,.1);min-height:48px}button{border:1px solid rgba(214,173,104,.24);background:linear-gradient(180deg,#dcb678,#b99152);color:#17120b;font-weight:750;min-height:48px}button:disabled{opacity:.55}.msg{display:none;margin:10px 0;padding:11px 12px;border-radius:12px;background:rgba(201,111,112,.12);border:1px solid rgba(201,111,112,.22);color:#efaaaa;font-size:13px}.ok{background:rgba(120,185,151,.12);border-color:rgba(120,185,151,.24);color:#9bd2b5}.back{background:rgba(255,255,255,.055);color:#f5f7fa;border-color:rgba(255,255,255,.1)}#form{display:none}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(800px 450px at 50% 0,rgba(215,177,109,.16),transparent 65%),#07090d;color:#f5f7fa;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;display:grid;place-items:center;padding:22px}.box{width:min(440px,100%);padding:30px 24px;border-radius:30px;background:linear-gradient(145deg,rgba(21,26,35,.98),rgba(11,14,20,.98));border:1px solid rgba(255,255,255,.09);box-shadow:0 30px 100px rgba(0,0,0,.55)}.mark{font-size:11px;font-weight:850;letter-spacing:.2em;color:#f0cc8b;text-transform:uppercase}.title{font-size:36px;line-height:1;margin:9px 0 8px;letter-spacing:-.055em}.sub{color:#8e98a8;line-height:1.45;margin-bottom:24px}input,button{width:100%;font:inherit;border-radius:14px;padding:13px;margin:6px 0}input{background:rgba(255,255,255,.045);color:#fff;border:1px solid rgba(255,255,255,.1);min-height:48px}button{border:1px solid rgba(214,173,104,.24);background:linear-gradient(180deg,#dcb678,#b99152);color:#17120b;font-weight:750;min-height:48px}button:disabled{opacity:.55}.msg{display:none;margin:10px 0;padding:11px 12px;border-radius:12px;background:rgba(201,111,112,.12);border:1px solid rgba(201,111,112,.22);color:#efaaaa;font-size:13px}.ok{background:rgba(120,185,151,.12);border-color:rgba(120,185,151,.24);color:#9bd2b5}.back{background:rgba(255,255,255,.055);color:#f5f7fa;border-color:rgba(255,255,255,.1)}#form,#verifyBox{display:none}.verify-note{color:#aeb6c3;line-height:1.45;margin:0 0 10px}.small{font-size:12px;color:#747f90;margin-top:10px}
 </style>
 </head>
 <body>
 <main class="box">
 <div class="mark">MY AUTO · 3.5</div>
 <div class="title">Новый пароль</div>
-<div class="sub" id="sub">Проверяем ссылку восстановления…</div>
+<div class="sub" id="sub">Ожидаем подтверждение ссылки восстановления…</div>
 <div id="msg" class="msg"></div>
+<section id="verifyBox">
+  <p class="verify-note">Ссылка получена. Для защиты от автоматической проверки почты восстановление запускается только после твоего нажатия.</p>
+  <button id="verifyBtn" type="button" onclick="confirmRecovery()">Продолжить восстановление</button>
+  <div class="small">Это действие одноразовое.</div>
+</section>
 <form id="form" onsubmit="return savePassword(event)">
 <input id="p1" type="password" minlength="6" autocomplete="new-password" placeholder="Новый пароль" required>
 <input id="p2" type="password" minlength="6" autocomplete="new-password" placeholder="Повторите новый пароль" required>
@@ -26,91 +31,114 @@
 <script>
 const SUPABASE_URL='https://rimssvnrcpnemeiwptxu.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_RjG_mMHnoSt7TpQEyUpaQw_MlK6kNL_';
-// This is a static client-only GitHub Pages app. Use implicit flow for the
-// recovery page so the email link contains the session tokens and does not
-// depend on a PKCE verifier stored in the browser that requested the email.
-const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{flowType:'implicit',autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}});
-const msg=document.getElementById('msg'),sub=document.getElementById('sub'),form=document.getElementById('form');
+const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{flowType:'pkce',autoRefreshToken:true,persistSession:true,detectSessionInUrl:false}});
+const msg=document.getElementById('msg'),sub=document.getElementById('sub'),form=document.getElementById('form'),verifyBox=document.getElementById('verifyBox');
 let recoverySession=null;
-let recoverySubscription=null;
+let pendingTokenHash=null;
+let pendingType=null;
+let pendingConfirmationUrl=null;
 function show(text,ok=false){msg.textContent=text;msg.className='msg'+(ok?' ok':'');msg.style.display='block'}
 function clearUrl(){try{history.replaceState({},document.title,location.pathname)}catch(e){}}
-async function establishSession(){
-  const qs=new URLSearchParams(location.search||'');
-  const hs=new URLSearchParams((location.hash||'').replace(/^#/,''));
+function qs(){return new URLSearchParams(location.search||'')}
+function hs(){return new URLSearchParams((location.hash||'').replace(/^#/,''))}
 
-  // 1) The normal, browser-independent recovery path: implicit-flow tokens.
-  const accessToken=hs.get('access_token'),refreshToken=hs.get('refresh_token');
-  if(accessToken&&refreshToken){
-    const r=await supa.auth.setSession({access_token:accessToken,refresh_token:refreshToken});
-    if(!r.error&&r.data?.session){recoverySession=r.data.session;return recoverySession;}
-    throw r.error||new Error('Не удалось установить сессию восстановления.');
+async function restoreExistingSession(){
+  const r=await supa.auth.getSession();
+  if(r.data?.session?.user){
+    recoverySession=r.data.session;
+    return recoverySession;
   }
-
-  // 2) Token-hash links are also supported for Supabase email templates.
-  const tokenHash=qs.get('token_hash')||hs.get('token_hash');
-  const type=qs.get('type')||hs.get('type');
-  if(tokenHash&&type==='recovery'){
-    const r=await supa.auth.verifyOtp({token_hash:tokenHash,type:'recovery'});
-    if(!r.error&&r.data?.session){recoverySession=r.data.session;return recoverySession;}
-    throw r.error||new Error('Не удалось подтвердить ссылку восстановления.');
-  }
-
-  // 3) Backward compatibility for an older PKCE email. This only works if
-  // the same browser still has the PKCE verifier. New emails no longer use it.
-  const code=qs.get('code');
-  if(code){
-    const r=await supa.auth.exchangeCodeForSession(code);
-    if(!r.error&&r.data?.session){recoverySession=r.data.session;return recoverySession;}
-    throw new Error('Это старая ссылка восстановления. Запросите новое письмо и откройте самое последнее.');
-  }
-
-  const existing=await supa.auth.getSession();
-  if(existing.data?.session){recoverySession=existing.data.session;return recoverySession;}
-  throw new Error('Ссылка восстановления не подтверждена. Запросите новое письмо.');
+  return null;
 }
-async function boot(){
-  try{
-    // Register the listener before session detection so PASSWORD_RECOVERY is
-    // caught even on browsers where URL processing is asynchronous.
-    const listener=new Promise((resolve,reject)=>{
-      let done=false;
-      const finish=(fn,value)=>{if(done)return;done=true;try{recoverySubscription?.unsubscribe()}catch(e){};fn(value)};
-      recoverySubscription=supa.auth.onAuthStateChange((event,session)=>{
-        if(event==='PASSWORD_RECOVERY'&&session?.user)finish(resolve,session);
-        else if((event==='SIGNED_IN'||event==='INITIAL_SESSION')&&session?.user){
-          const hasRecoveryHash=/access_token=|refresh_token=|type=recovery/.test(location.hash||location.search||'');
-          if(hasRecoveryHash)finish(resolve,session);
-        }
-      }).data.subscription;
-      setTimeout(()=>finish(reject,new Error('Ссылка восстановления не подтверждена. Запросите новое письмо.')),5000);
-    });
 
-    let s=null;
-    try{s=await Promise.race([establishSession(),listener])}catch(e){
-      // establishSession can finish first; listener can finish first on Safari/Yandex.
-      const current=await supa.auth.getSession();
-      if(current.data?.session)s=current.data.session; else throw e;
+function prepare(){
+  const q=qs(), h=hs();
+  pendingTokenHash=q.get('token_hash')||h.get('token_hash');
+  pendingType=q.get('type')||h.get('type');
+  pendingConfirmationUrl=q.get('confirmation_url');
+
+  // New scanner-safe email template: the email points to this page with
+  // token_hash, but we do NOT verify it on page load. A scanner may GET the
+  // page, but cannot consume the one-time token because verification is only
+  // performed after the user presses the button.
+  if(pendingTokenHash && pendingType==='recovery'){
+    sub.textContent='Ссылка восстановления получена. Нажми кнопку ниже.';
+    verifyBox.style.display='block';
+    return;
+  }
+
+  // Optional second-level scanner-safe template using the original
+  // ConfirmationURL as an encoded parameter. The actual Supabase link is
+  // opened only after the user presses the button.
+  if(pendingConfirmationUrl){
+    sub.textContent='Ссылка восстановления получена. Нажми кнопку ниже.';
+    verifyBox.style.display='block';
+    return;
+  }
+
+  // Backward-compatible implicit-flow callback. This path is kept for old
+  // links, but new emails must use token_hash above.
+  const accessToken=h.get('access_token'),refreshToken=h.get('refresh_token');
+  if(accessToken&&refreshToken){
+    supa.auth.setSession({access_token:accessToken,refresh_token:refreshToken}).then(r=>{
+      if(r.error||!r.data?.session) throw r.error||new Error('Не удалось установить сессию.');
+      recoverySession=r.data.session;
+      sub.textContent='Ссылка подтверждена. Придумай новый пароль.';
+      form.style.display='block';
+      clearUrl();
+    }).catch(e=>show(e?.message||'Не удалось подтвердить восстановление.'));
+    return;
+  }
+
+  restoreExistingSession().then(s=>{
+    if(s){
+      sub.textContent='Сессия восстановления найдена. Придумай новый пароль.';
+      form.style.display='block';
+      return;
     }
-    if(!s?.user)throw new Error('Сессия восстановления не установлена.');
-    recoverySession=s;
-    sub.textContent='Ссылка подтверждена. Придумайте новый пароль для аккаунта.';
+    sub.textContent='Ссылка восстановления не найдена.';
+    show('Запроси новое письмо восстановления. В новом письме нужно нажать «Продолжить восстановление».');
+  }).catch(e=>show(e?.message||'Не удалось проверить сессию.'));
+}
+
+async function confirmRecovery(){
+  const btn=document.getElementById('verifyBtn');
+  btn.disabled=true;btn.textContent='Проверяем…';
+  try{
+    if(pendingConfirmationUrl){
+      // The original Supabase confirmation URL is intentionally opened only
+      // after a user click, which prevents Yandex Mail/Safe-Link prefetching
+      // from consuming the one-time recovery token.
+      location.href=pendingConfirmationUrl;
+      return;
+    }
+    if(!pendingTokenHash||pendingType!=='recovery') throw new Error('Ссылка восстановления неполная.');
+    const r=await supa.auth.verifyOtp({token_hash:pendingTokenHash,type:'recovery'});
+    if(r.error) throw r.error;
+    if(!r.data?.session) throw new Error('Сессия восстановления не получена.');
+    recoverySession=r.data.session;
+    sub.textContent='Ссылка подтверждена. Теперь придумай новый пароль.';
+    verifyBox.style.display='none';
     form.style.display='block';
     clearUrl();
   }catch(e){
-    sub.textContent='Не удалось подтвердить восстановление.';
-    show(e?.message||'Ссылка восстановления недействительна. Запросите новое письмо.');
+    console.error('RECOVERY VERIFY ERROR',e);
+    show(e?.message||'Не удалось подтвердить восстановление. Запроси новое письмо.');
+    btn.disabled=false;btn.textContent='Продолжить восстановление';
   }
 }
+
 async function savePassword(e){
   e.preventDefault();
   const a=document.getElementById('p1').value,b=document.getElementById('p2').value;
-  if(a.length<6)return show('Новый пароль должен быть не короче 6 символов.');
-  if(a!==b)return show('Пароли не совпадают.');
+  if(a.length<6){show('Новый пароль должен быть не короче 6 символов.');return false}
+  if(a!==b){show('Пароли не совпадают.');return false}
   const btn=document.getElementById('save');btn.disabled=true;btn.textContent='Сохраняем…';
   try{
-    const s=recoverySession||await establishSession();
-    if(!s?.user)throw new Error('Сессия восстановления не установлена.');
+    if(!recoverySession){
+      recoverySession=await restoreExistingSession();
+      if(!recoverySession) throw new Error('Сессия восстановления не установлена.');
+    }
     const r=await supa.auth.updateUser({password:a});
     if(r.error)throw r.error;
     show('Пароль сохранён. Сейчас откроется вход.',true);
@@ -121,7 +149,7 @@ async function savePassword(e){
   finally{btn.disabled=false;btn.textContent='Сохранить новый пароль'}
   return false;
 }
-boot();
+prepare();
 </script>
 </body>
 </html>
