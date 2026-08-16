@@ -1,4 +1,4 @@
-// RECOVERY_DEPLOY_V7 — dedicated reset page
+// RECOVERY_DEPLOY_V8 — fix project-site recovery URL
 (function(){
   function recoveryParams(){
     const qs=new URLSearchParams(location.search||'');
@@ -13,7 +13,7 @@
       hs.has('code') || hs.has('token_hash');
   }
   function goToReset(){
-    const target='./reset.html'+(location.search||'')+(location.hash||'');
+    const target=new URL('./reset.html'+(location.search||'')+(location.hash||''),location.href).href;
     if(location.pathname.endsWith('/reset.html')) return;
     location.replace(target);
   }
@@ -25,14 +25,14 @@
     return;
   }
 
-  // Password-reset request always uses the dedicated static reset page.
+  // Always use the actual GitHub Pages project path, not the domain root.
   window.resetPassword=async function(){
     const email=(document.getElementById('authEmail')?.value||'').trim();
     if(!email)return authMsg('Сначала введи e-mail.');
     const btn=document.querySelector('#authLogin button[onclick*="resetPassword"]');
     if(btn){btn.disabled=true;btn.textContent='Отправляем…';}
     try{
-      const redirectTo=location.origin+'/reset.html';
+      const redirectTo=new URL('./reset.html',location.href).href;
       const {error}=await supa.auth.resetPasswordForEmail(email,{redirectTo});
       if(error)throw error;
       authMsg('Письмо отправлено. Открой самое последнее письмо — ссылка откроет отдельную страницу создания нового пароля.');
