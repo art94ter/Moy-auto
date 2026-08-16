@@ -1,7 +1,7 @@
 <h2>Восстановление пароля «Мой Авто»</h2>
 <p>Мы получили запрос на восстановление пароля для вашего аккаунта.</p>
-<p>Для продолжения нажмите кнопку ниже. Автоматическая проверка письма не сможет использовать ссылку восстановления раньше вас.</p>
+<p>Для продолжения нажмите кнопку ниже. Откроется отдельная страница восстановления пароля.</p>
 <p>
-  <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=recovery" style="display:inline-block;padding:12px 20px;border-radius:10px;background:#dcb678;color:#17120b;text-decoration:none;font-weight:700;">Продолжить восстановление</a>
+  <a href="{{ .SiteURL }}/reset-v11.html?token_hash={{ .TokenHash }}&type=recovery" style="display:inline-block;padding:12px 20px;border-radius:10px;background:#dcb678;color:#17120b;text-decoration:none;font-weight:700;">Продолжить восстановление</a>
 </p>
 <p>Если вы не запрашивали восстановление пароля, просто проигнорируйте это письмо.</p>
