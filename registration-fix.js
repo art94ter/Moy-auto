@@ -1,4 +1,4 @@
-// RECOVERY_DEPLOY_V16 — password recovery + password eyes + animated dashboard car swipe
+// RECOVERY_DEPLOY_V17 — password recovery + password eyes + animated dashboard car swipe + duplicate car block removal
 (function(){
   const RESET = new URL('./reset-v11.html', location.href).href;
   function params(){
@@ -39,7 +39,7 @@
     }
   };
 
-  // 👁 Показывать/скрывать пароль во всех полях type=password.
+  // Показывать/скрывать пароль во всех полях type=password.
   function addPasswordEyes(){
     document.querySelectorAll('input[type="password"]').forEach(function(input){
       if(input.dataset.eyeAdded==='1')return;
@@ -71,7 +71,7 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addPasswordEyes);else addPasswordEyes();
   new MutationObserver(addPasswordEyes).observe(document.documentElement,{childList:true,subtree:true});
 
-  // 🚗 Переключение автомобилей свайпом влево/вправо на главной карточке.
+  // Переключение автомобилей свайпом влево/вправо на главной карточке.
   function setupCarSwipe(){
     const hero=document.getElementById('premiumHero');
     const select=document.getElementById('topCarSelect')||document.getElementById('carSelect');
@@ -132,6 +132,21 @@
   garageStyle.textContent='.top-garage-menu{display:none!important}.card:has(#dashCar){display:none!important}';
   document.head.appendChild(garageStyle);
 
-  function bootSwipe(){setTimeout(setupCarSwipe,300);setTimeout(setupCarSwipe,1200);}
+  // Дополнительно удаляем старую карточку напрямую — это надёжнее CSS :has() на старых/закэшированных версиях Safari.
+  function removeDuplicateCarCard(){
+    const dash=document.getElementById('dashCar');
+    if(!dash)return;
+    const card=dash.closest('.card');
+    if(card)card.remove();
+  }
+
+  function bootSwipe(){
+    removeDuplicateCarCard();
+    setTimeout(removeDuplicateCarCard,300);
+    setTimeout(setupCarSwipe,300);
+    setTimeout(setupCarSwipe,1200);
+    setTimeout(removeDuplicateCarCard,1200);
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootSwipe);else bootSwipe();
+  new MutationObserver(removeDuplicateCarCard).observe(document.documentElement,{childList:true,subtree:true});
 })();
