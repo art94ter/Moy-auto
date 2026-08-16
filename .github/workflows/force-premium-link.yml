@@ -19,9 +19,11 @@ jobs:
           from pathlib import Path
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
+          import re
+          s=re.sub(r'<script src="work-history-modal(?:-v2)?\.js[^>]*></script>', '', s)
           link='<link rel="stylesheet" href="premium-final.css?v=1">'
           swipe='<script src="swipe-v22.js?v=restore2" defer></script>'
-          works='<script src="work-history-modal.js?v=1" defer></script>'
+          works='<script src="work-history-modal-v2.js?v=2" defer></script>'
           if link not in s:
               s=s.replace('</head>', link+'</head>', 1)
           if swipe not in s:
