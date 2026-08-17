@@ -1,0 +1,36 @@
+name: Force V39 visual cache bust
+
+on:
+  push:
+    branches: [gh-pages]
+
+permissions:
+  contents: write
+
+jobs:
+  cache-bust:
+    if: github.event.head_commit.message != 'Force V39 visual cache bust'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 1
+      - name: Update visual script URLs
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          s2 = s.replace('swipe-v22.js?v=restore1', 'swipe-v22.js?v=v39').replace('swipe-v22.js?v=restore2', 'swipe-v22.js?v=v39b')
+          if s2 == s:
+              raise SystemExit('No old visual script URLs found')
+          p.write_text(s2)
+          PY
+      - name: Commit cache bust
+        run: |
+          git config user.name 'art94ter'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Force V39 visual cache bust'
+          git push origin gh-pages
