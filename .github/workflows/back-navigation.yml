@@ -1,0 +1,92 @@
+name: Add back navigation
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-pages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout published branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Inject reliable back button
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          marker = '<!-- MOY-AUTO-BACK-NAV -->'
+          if marker in s:
+              print('Back navigation already installed')
+          else:
+              block = r'''<!-- MOY-AUTO-BACK-NAV -->
+<script>
+(function(){
+  'use strict';
+  const ID='moyAutoBackButton';
+  function ensure(){
+    let b=document.getElementById(ID);
+    if(!b){
+      b=document.createElement('button');
+      b.id=ID;
+      b.type='button';
+      b.textContent='←  Назад';
+      b.onclick=function(){
+        const homeBtn=document.querySelector('#nav button');
+        if(typeof window.go==='function') window.go('home',homeBtn||null);
+        else if(homeBtn) homeBtn.click();
+        update();
+      };
+      document.body.appendChild(b);
+    }
+    return b;
+  }
+  function update(){
+    const b=ensure();
+    const active=document.querySelector('.view.active');
+    const isHome=!!active && active.id==='home';
+    b.style.display=isHome?'none':'flex';
+  }
+  function css(){
+    if(document.getElementById('moyAutoBackStyle')) return;
+    const s=document.createElement('style');
+    s.id='moyAutoBackStyle';
+    s.textContent=`#moyAutoBackButton{position:fixed;left:calc(50% - min(215px,50vw) + 12px);top:calc(10px + env(safe-area-inset-top));z-index:2147483647;align-items:center;justify-content:center;height:38px;padding:0 15px;border:1px solid rgba(224,178,77,.62);border-radius:13px;background:linear-gradient(145deg,rgba(28,31,34,.96),rgba(8,10,12,.96));color:#f1c96f;font:700 12px/1 -apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;box-shadow:inset 0 1px rgba(255,255,255,.08),0 10px 25px rgba(0,0,0,.5);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);-webkit-tap-highlight-color:transparent;touch-action:manipulation}`;
+    document.head.appendChild(s);
+  }
+  function hook(){
+    css();
+    const old=window.go;
+    if(typeof old==='function' && !old.__moyBackWrapped){
+      const wrapped=function(id,btn){const r=old.apply(this,arguments);setTimeout(update,0);return r};
+      wrapped.__moyBackWrapped=true;
+      window.go=wrapped;
+    }
+    update();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',hook); else hook();
+  new MutationObserver(function(){setTimeout(update,0)}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
+})();
+</script>'''
+              s=s.replace('</body>', block+'\n</body>')
+              p.write_text(s,encoding='utf-8')
+          PY
+
+      - name: Publish
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Add reliable back navigation to sections'
+          git push origin HEAD:gh-pages
