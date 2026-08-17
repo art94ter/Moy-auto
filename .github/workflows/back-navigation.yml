@@ -90,3 +90,5 @@ jobs:
           git add index.html
           git diff --cached --quiet || git commit -m 'Add reliable back navigation to sections'
           git push origin HEAD:gh-pages
+
+# trigger deployment
