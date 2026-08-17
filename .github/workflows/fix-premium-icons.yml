@@ -1,0 +1,47 @@
+name: Fix premium icons
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix-gh-pages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 1
+
+      - name: Patch the actual published index
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          replacements={
+          '<span class="qicon">${svg(\'clipboard\')}</span>': '<span class="qicon"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 9h8M8 13h7M8 17h5"/></svg></span>',
+          '<span class="qicon">${svg(\'fuel\')}</span>': '<span class="qicon"><svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6zM9 3v5h6V3M19 9l2 2v6a2 2 0 0 1-4 0v-6"/></svg></span>',
+          '<span class="qicon">${svg(\'tire\')}</span>': '<span class="qicon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.2"/><path d="m12 3.5 2.5 6.3M20.5 12l-6.3 2.5M12 20.5l-2.5-6.3M3.5 12l6.3-2.5"/></svg></span>',
+          '<div class="stat-card"><div class="stat-icon">₽</div>': '<div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M8 3v18M16 3v18M5 7h8.5a3.5 3.5 0 0 1 0 7H5M5 10h8"/></svg></div>',
+          '<div class="stat-card"><div class="stat-icon">▣</div>': '<div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 9h8M8 13h7M8 17h5"/></svg></div>',
+          '<div class="stat-card"><div class="stat-icon">◌</div>': '<div class="stat-card"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M12 3s5 5.2 5 10a5 5 0 1 1-10 0c0-4.8 5-10 5-10Z"/></svg></div>',
+          '<span class="event-icon">□</span>': '<span class="event-icon"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 9h16"/></svg></span>'}
+          for a,b in replacements.items(): s=s.replace(a,b)
+          marker='</style>'
+          css='<style id="premium-icon-visibility">.qicon svg,.stat-icon svg,.event-icon svg{display:block;fill:none;stroke:#f7d98c;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.qicon svg{width:23px;height:23px}.stat-icon svg{width:22px;height:22px}.event-icon svg{width:30px;height:30px}</style>'
+          if 'premium-icon-visibility' not in s: s=s.replace(marker,css+marker,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+
+      - name: Publish icon fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "fix: publish premium icons"
+          git push origin HEAD:gh-pages
