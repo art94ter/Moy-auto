@@ -1,215 +1,100 @@
-// MOY AUTO — MOBILE PREMIUM LAYOUT V31
+// MOY AUTO — LUXURY GARAGE VISUAL FIX V42
 (function(){
   'use strict';
-  if (window.__MOY_AUTO_LAYOUT_V31__) return;
-  window.__MOY_AUTO_LAYOUT_V31__ = true;
+  if(window.__MOY_AUTO_LUXURY_V42__) return;
+  window.__MOY_AUTO_LUXURY_V42__=true;
 
-  const NAV_ID = 'moyPremiumBottomNav';
-  const STYLE_ID = 'moyPremiumV31Style';
+  const STYLE='moyAutoLuxuryV42Style';
+  const NAV='moyAutoLuxuryBottomNav';
+  const $=(s,r=document)=>r.querySelector(s);
+  const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 
-  function txt(el){
-    return ((el && (el.innerText || el.textContent)) || '').replace(/\s+/g,' ').trim();
-  }
-
-  function addStyle(){
-    if(document.getElementById(STYLE_ID)) return;
-    const s=document.createElement('style');
-    s.id=STYLE_ID;
+  function inject(){
+    if($('#'+STYLE)) return;
+    const s=document.createElement('style'); s.id=STYLE;
     s.textContent=`
-      html,body{width:100%;max-width:100%;overflow-x:hidden!important}
+      html,body{background:#020405!important;overflow-x:hidden!important}
       body{padding-bottom:0!important}
-      main{width:100%!important;max-width:820px!important;margin:0 auto!important;padding:0 12px 170px!important}
+      #app{width:min(100%,430px)!important;margin:0 auto!important;padding:0 12px 92px!important;min-height:100vh!important}
+      #app>.topline{display:none!important}
+      #app>.vehicle{height:200px!important;margin-top:12px!important;border-radius:18px!important;padding:17px 17px 10px!important;border-color:rgba(214,170,79,.72)!important;background:radial-gradient(230px 120px at 87% 6%,rgba(223,177,73,.16),transparent 70%),linear-gradient(145deg,#090c0e,#101214 52%,#080a0b)!important;box-shadow:inset 0 1px rgba(255,255,255,.08),0 18px 45px rgba(0,0,0,.55)!important}
+      #app>.vehicle:before{width:310px!important;height:190px!important;right:-105px!important;top:-68px!important;border-color:rgba(224,179,79,.72)!important;box-shadow:0 0 0 16px rgba(224,179,79,.05),0 0 0 34px rgba(224,179,79,.035),0 0 0 52px rgba(224,179,79,.02)!important}
+      #app>.vehicle:after{right:0!important;bottom:0!important;width:72%!important;height:60px!important;background:radial-gradient(ellipse,rgba(224,179,79,.13),transparent 70%)!important}
+      #app .v-kicker{font-size:8px!important;letter-spacing:.28em!important;color:#f1c76f!important}
+      #app .v-name{font-size:24px!important;line-height:1!important;margin-top:8px!important;letter-spacing:-.045em!important}
+      #app .v-meta{font-size:10px!important;margin-top:7px!important;color:#a7adb5!important}
+      #app .v-km{font-size:33px!important;line-height:1!important;margin-top:25px!important;letter-spacing:-.055em!important}
+      #app .v-km span{font-size:11px!important;color:#9299a1!important}
+      #app .v-progress{left:17px!important;right:17px!important;bottom:13px!important}
+      #app .v-plabel{font-size:8px!important;margin-bottom:6px!important}
+      #app .bar{height:5px!important;background:rgba(255,255,255,.10)!important}
+      #app .bar i{background:linear-gradient(90deg,#d5a746,#f6d98b)!important}
 
-      /* There must be only one navigation bar. */
-      body>nav:not(#${NAV_ID}),main>nav,#appShell>nav{display:none!important}
-      #${NAV_ID}{
-        position:fixed!important;
-        left:50%!important;
-        right:auto!important;
-        top:auto!important;
-        bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;
-        transform:translateX(-50%)!important;
-        width:min(820px,calc(100vw - 18px))!important;
-        height:68px!important;
-        margin:0!important;
-        padding:6px!important;
-        display:grid!important;
-        grid-template-columns:repeat(5,minmax(0,1fr))!important;
-        gap:5px!important;
-        overflow:hidden!important;
-        box-sizing:border-box!important;
-        z-index:2147483647!important;
-        border:1px solid rgba(255,255,255,.16)!important;
-        border-radius:23px!important;
-        background:linear-gradient(145deg,rgba(33,38,47,.90),rgba(11,14,20,.88))!important;
-        box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 20px 55px rgba(0,0,0,.55)!important;
-        backdrop-filter:blur(28px) saturate(150%)!important;
-        -webkit-backdrop-filter:blur(28px) saturate(150%)!important;
-        pointer-events:auto!important;
-        touch-action:manipulation!important;
-      }
-      #${NAV_ID} button{
-        width:100%!important;
-        min-width:0!important;
-        height:54px!important;
-        min-height:54px!important;
-        margin:0!important;
-        padding:4px 1px!important;
-        display:flex!important;
-        flex-direction:column!important;
-        align-items:center!important;
-        justify-content:center!important;
-        gap:3px!important;
-        overflow:hidden!important;
-        border:1px solid transparent!important;
-        border-radius:17px!important;
-        background:rgba(255,255,255,.025)!important;
-        color:#929cab!important;
-        box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important;
-        font:700 10px/1.05 -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif!important;
-        pointer-events:auto!important;
-        touch-action:manipulation!important;
-        -webkit-tap-highlight-color:transparent!important;
-        appearance:none!important;
-      }
-      #${NAV_ID} .moy-nav-icon{font-size:19px!important;line-height:19px!important}
-      #${NAV_ID} button.active{
-        color:#f1cf91!important;
-        background:linear-gradient(145deg,rgba(240,207,145,.20),rgba(215,177,109,.055))!important;
-        border-color:rgba(240,207,145,.30)!important;
-        box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 7px 20px rgba(216,179,110,.08)!important;
-      }
-      #${NAV_ID} button:active{transform:scale(.96)!important}
+      #app>.nav{position:relative!important;top:auto!important;margin:10px 0 27px!important;height:64px!important;padding:3px!important;border-radius:17px!important;background:linear-gradient(145deg,rgba(27,30,33,.94),rgba(7,9,11,.96))!important;border-color:rgba(255,255,255,.20)!important;box-shadow:inset 0 1px rgba(255,255,255,.08),0 13px 30px rgba(0,0,0,.5)!important;z-index:10!important}
+      #app>.nav button{height:56px!important;border-radius:13px!important;color:#c8cbd0!important;font-size:9px!important}
+      #app>.nav button.active{color:#f5ce7b!important;background:linear-gradient(145deg,rgba(221,175,76,.18),rgba(221,175,76,.045))!important;border-color:rgba(221,175,76,.52)!important}
+      #app>.nav svg{width:23px!important;height:23px!important;stroke-width:1.8!important}
 
-      /* Remove the duplicate garage/car panels from the Home screen. */
-      #topGarageMenu{display:none!important}
-      #home .moy-home-duplicate{display:none!important}
-      #home .moy-home-garage{display:none!important}
+      #app #home{padding:0 1px!important}
+      #app .section-head{margin:0 3px 10px!important;align-items:center!important}
+      #app .section-head h2{font-size:16px!important;font-weight:800!important;letter-spacing:-.025em!important}
+      #app .section-head h2:after{width:29px!important;height:2px!important;margin-top:6px!important;background:#f1c76f!important}
+      #app .section-head button{font-size:9px!important;padding:7px 13px!important;border-radius:10px!important;border-color:rgba(218,173,73,.78)!important;background:rgba(10,12,14,.45)!important;color:#f0c66e!important}
 
-      /* Keep the single premium hero as the main vehicle block. */
-      #premiumHero{margin-top:14px!important}
+      #app .quick-grid,#app .stats-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important}
+      #app .glass-card{height:132px!important;min-height:132px!important;padding:11px!important;border-radius:14px!important;border-color:rgba(214,170,79,.84)!important;background:linear-gradient(145deg,rgba(25,27,29,.82),rgba(7,9,11,.94))!important;box-shadow:inset 0 1px rgba(255,255,255,.07),0 12px 24px rgba(0,0,0,.36)!important}
+      #app .qicon{width:38px!important;height:38px!important;border-radius:12px!important;border-color:rgba(235,194,105,.78)!important;color:#f2c970!important;background:rgba(225,178,72,.08)!important}
+      #app .qicon svg{width:24px!important;height:24px!important}
+      #app .glass-card strong{font-size:10px!important;margin-top:10px!important}
+      #app .glass-card small{font-size:8px!important;line-height:1.45!important;color:#aeb3ba!important}
+      #app .glass-card .arrow{right:8px!important;bottom:6px!important;color:#efc66d!important;font-size:22px!important}
 
-      /* Make quick actions fit cleanly on phones. */
-      .quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
-      .quick{min-width:0!important;min-height:145px!important}
+      #app .spacer{height:24px!important}
+      #app .stat-card{height:140px!important;min-height:140px!important;padding:11px!important;border-radius:14px!important;border-color:rgba(214,170,79,.72)!important;background:linear-gradient(145deg,rgba(23,25,27,.84),rgba(7,9,11,.95))!important}
+      #app .stat-icon{width:36px!important;height:36px!important;color:#efc66d!important;border-color:rgba(224,178,76,.72)!important;background:rgba(224,178,76,.05)!important}
+      #app .stat-card b{font-size:20px!important;margin-top:11px!important}
+      #app .stat-card span{font-size:8px!important;line-height:1.45!important}
 
-      @media(max-width:600px){
-        main{padding-left:10px!important;padding-right:10px!important;padding-bottom:150px!important}
-        #${NAV_ID}{width:calc(100vw - 16px)!important;height:66px!important;border-radius:21px!important}
-        #${NAV_ID} button{height:52px!important;min-height:52px!important;font-size:10px!important}
-        #${NAV_ID} .moy-nav-icon{font-size:18px!important}
-        .hero-car{margin-top:12px!important}
-      }
+      #app .event{min-height:76px!important;border-radius:14px!important;padding:10px 12px!important;border-color:rgba(255,255,255,.18)!important;background:linear-gradient(145deg,rgba(18,22,25,.88),rgba(7,9,11,.96))!important}
+      #app .event-icon{font-size:27px!important;color:#efc66d!important;width:38px!important}
+      #app .event strong{font-size:10px!important}
+      #app .event small{font-size:8px!important}
+
+      #app #recentHome{border-radius:14px!important;padding:4px 12px!important;background:linear-gradient(145deg,rgba(18,22,25,.84),rgba(7,9,11,.94))!important;border-color:rgba(255,255,255,.15)!important}
+
+      #${NAV}{position:fixed;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(calc(100vw - 24px),406px);height:64px;z-index:9999;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:3px;border:1px solid rgba(255,255,255,.22);border-radius:18px;background:linear-gradient(145deg,rgba(25,28,31,.96),rgba(7,9,11,.98));box-shadow:inset 0 1px rgba(255,255,255,.08),0 14px 38px rgba(0,0,0,.7);backdrop-filter:blur(22px)}
+      #${NAV} button{border:1px solid transparent;border-radius:14px;background:transparent;color:#c5c9ce;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:9px}
+      #${NAV} button.active{color:#f4cd7a;border-color:rgba(224,178,77,.55);background:linear-gradient(145deg,rgba(224,178,77,.18),rgba(224,178,77,.035));box-shadow:inset 0 1px rgba(255,255,255,.08)}
+      #${NAV} svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+      @media(max-width:370px){#app{padding-left:9px!important;padding-right:9px!important}.vehicle{height:196px!important}.v-name{font-size:22px!important}.v-km{font-size:31px!important}.quick-grid,.stats-grid{gap:6px!important}.glass-card{height:126px!important;min-height:126px!important;padding:9px!important}.stat-card{height:132px!important;min-height:132px!important}}
     `;
     document.head.appendChild(s);
   }
 
-  function hideDuplicateHomeBlocks(){
-    const home=document.getElementById('home');
-    if(!home) return;
-
-    // Remove the old in-home garage selector if a previous version duplicated it.
-    home.querySelectorAll('.card,.tile').forEach(function(el){
-      const t=txt(el);
-      if(!t) return;
-      if(/Мои автомобили/.test(t) && /Переключайся между автомобилями|ГАРАЖ|Добавить автомобиль|Удалить текущий/.test(t)){
-        el.classList.add('moy-home-garage');
-      }
-      // The old dashboard vehicle card has both the vehicle label and mileage.
-      if(/Автомобиль/.test(t) && /Пробег/.test(t) && /км/.test(t) && !el.id.includes('premiumHero')){
-        el.classList.add('moy-home-duplicate');
-      }
-    });
-
-    const top=document.getElementById('topGarageMenu');
-    if(top) top.style.setProperty('display','none','important');
+  function navIcon(k){
+    const m={
+      home:'<svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9 20v-5h6v5"/></svg>',
+      service:'<svg viewBox="0 0 24 24"><path d="m14 6 4-4 4 4-4 4"/><path d="m13 8-8 8a2 2 0 0 0 3 3l8-8"/></svg>',
+      fuel:'<svg viewBox="0 0 24 24"><path d="M6 3h9v18H6zM9 3v5h6V3M18 8l3 3v7a2 2 0 0 1-4 0v-7"/></svg>',
+      tire:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.2"/><path d="m12 3.5 2.5 6.3M20.5 12l-6.3 2.5M12 20.5l-2.5-6.3M3.5 12l6.3-2.5"/></svg>',
+      data:'<svg viewBox="0 0 24 24"><path d="M5 20V10M10 20V5M15 20v-8M20 20V3M3 20h19"/></svg>'};return m[k];
   }
 
-  function setActive(index){
-    const bar=document.getElementById(NAV_ID);
-    if(!bar) return;
-    bar.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('active',i===index));
+  function bottomNav(){
+    let n=$('#'+NAV); if(!n){n=document.createElement('nav');n.id=NAV;document.body.appendChild(n)}
+    const items=[['home','Главная'],['service','ТО'],['fuel','Топливо'],['tires','Шины'],['data','Данные']];
+    n.innerHTML=items.map(([k,t])=>`<button data-tab="${k}">${navIcon(k)}<span>${t}</span></button>`).join('');
+    const active=$$('.view.active')[0]?.id||'home';
+    $$('#'+NAV+' button').forEach(b=>{b.classList.toggle('active',b.dataset.tab===active);b.onclick=()=>{const top=$$('#nav button').find(x=>(x.textContent||'').trim()===b.textContent.trim());if(top)top.click();else if(typeof go==='function')go(b.dataset.tab);setTimeout(bottomNav,40)}});
   }
 
-  function navigate(target,index){
-    const original=document.querySelector('body>main nav button:nth-child('+(index+1)+')') || document.querySelector('main>nav button:nth-child('+(index+1)+')');
-    try{
-      if(typeof window.tab==='function') window.tab(target,original);
-      else{
-        document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-        const view=document.getElementById(target);
-        if(view) view.classList.add('active');
-      }
-    }catch(e){
-      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-      const view=document.getElementById(target);
-      if(view) view.classList.add('active');
-    }
-    setActive(index);
-    hideDuplicateHomeBlocks();
-    window.scrollTo({top:0,behavior:'smooth'});
-    setTimeout(function(){setActive(index);hideDuplicateHomeBlocks();},60);
+  function polish(){
+    const k=$('.v-kicker'); if(k) k.textContent='MY AUTO · PREMIUM GARAGE';
+    const app=$('#app'); if(!app||app.classList.contains('hidden')) return;
+    inject(); bottomNav();
+    const nav=$('#nav'); if(nav) nav.style.position='relative';
   }
-
-  function buildNav(){
-    let bar=document.getElementById(NAV_ID);
-    if(!bar){
-      bar=document.createElement('nav');
-      bar.id=NAV_ID;
-      bar.setAttribute('aria-label','Основная навигация');
-      document.body.appendChild(bar);
-    }
-    if(bar.dataset.v31==='1') return;
-    bar.dataset.v31='1';
-    bar.innerHTML='';
-    [
-      ['⌂','Главная','home'],
-      ['🔧','ТО','service'],
-      ['⛽','Топливо','fuel'],
-      ['◉','Шины','tires'],
-      ['▣','Данные','data']
-    ].forEach(function(item,index){
-      const b=document.createElement('button');
-      b.type='button';
-      b.innerHTML='<span class="moy-nav-icon">'+item[0]+'</span><span>'+item[1]+'</span>';
-      const action=function(e){
-        if(e){e.preventDefault();e.stopPropagation();}
-        navigate(item[2],index);
-      };
-      b.addEventListener('click',action);
-      b.addEventListener('touchend',action,{passive:false});
-      bar.appendChild(b);
-    });
-  }
-
-  function sync(){
-    const views=[...document.querySelectorAll('.view')];
-    const active=views.findIndex(v=>v.classList.contains('active'));
-    setActive(active<0?0:Math.min(active,4));
-    hideDuplicateHomeBlocks();
-  }
-
-  function boot(){
-    try{
-      addStyle();
-      buildNav();
-      sync();
-      setTimeout(sync,250);
-      setTimeout(sync,1000);
-    }catch(e){console.warn('Moy Auto V31:',e)}
-  }
-
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
-  else boot();
-
-  // Re-apply only when the app changes the active view; do not mutate layout continuously.
-  const observer=new MutationObserver(function(mutations){
-    let relevant=false;
-    mutations.forEach(function(m){
-      if(m.type==='attributes' && m.attributeName==='class' && m.target.classList && m.target.classList.contains('view')) relevant=true;
-    });
-    if(relevant) sync();
-  });
-  observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['class']});
-  window.addEventListener('resize',function(){addStyle();});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',polish); else polish();
+  new MutationObserver(()=>setTimeout(polish,30)).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
+  window.addEventListener('resize',polish);
 })();
