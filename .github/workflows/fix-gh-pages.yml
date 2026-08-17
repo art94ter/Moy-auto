@@ -1,0 +1,47 @@
+name: Fix published app
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix-gh-pages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fix script loading
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          import re
+          # Remove every legacy swipe-v22 script tag so it cannot be loaded twice/cached under old query strings.
+          s = re.sub(r'<script[^>]+src=["\'](?:\./)?swipe-v22\.js[^>]*></script>', '', s, flags=re.I)
+          # Remove the old external car image loader; the requested design has no vehicle photo.
+          s = re.sub(r'<script[^>]+src=["\'](?:\./)?car-image-loader\.js[^>]*></script>', '', s, flags=re.I)
+          # Load one cache-busted, current visual/interaction layer exactly once.
+          marker = '<script src="swipe-v22.js?v=v40"></script>'
+          if marker not in s:
+              s = s.replace('</body>', marker + '</body>')
+          p.write_text(s)
+          PY
+
+      - name: Publish
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Fix published script loading and remove car photo loader'
+          git push origin HEAD:gh-pages
