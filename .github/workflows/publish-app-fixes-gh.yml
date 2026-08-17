@@ -1,0 +1,42 @@
+name: Publish home fixes to Pages
+
+on:
+  push:
+    branches: [gh-pages]
+    paths:
+      - '.github/workflows/publish-app-fixes-gh.yml'
+      - 'app-fixes-v1.js'
+      - '_publish_trigger.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Copy fix from main and inject it
+        run: |
+          git fetch origin main
+          git show origin/main:app-fixes-v1.js > app-fixes-v1.js
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          tag='<script src="./app-fixes-v1.js?v=1"></script>'
+          if tag not in s:
+              s=s.replace('</body>',tag+'\n</body>')
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit published fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html app-fixes-v1.js
+          git diff --cached --quiet || git commit -m 'Publish home swipe and photo fixes'
+          git push origin gh-pages
