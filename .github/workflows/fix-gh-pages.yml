@@ -18,20 +18,19 @@ jobs:
           fetch-depth: 1
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Fix script loading
+      - name: Fix published script loading
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           p = Path('index.html')
           s = p.read_text()
-          import re
-          # Remove every legacy swipe-v22 script tag so it cannot be loaded twice/cached under old query strings.
-          s = re.sub(r'<script[^>]+src=["\'](?:\./)?swipe-v22\.js[^>]*></script>', '', s, flags=re.I)
-          # Remove the old external car image loader; the requested design has no vehicle photo.
-          s = re.sub(r'<script[^>]+src=["\'](?:\./)?car-image-loader\.js[^>]*></script>', '', s, flags=re.I)
-          # Load one cache-busted, current visual/interaction layer exactly once.
-          marker = '<script src="swipe-v22.js?v=v40"></script>'
+          # Remove duplicate/legacy dashboard interaction layers and old swipe/car loaders.
+          for name in ['swipe-v22.js','car-image-loader.js','registration-fix.js','interaction-fix.js']:
+              s = re.sub(r'<script[^>]+src=["\'](?:\./)?' + re.escape(name) + r'(?:\?[^"\']*)?[^>]*></script>', '', s, flags=re.I)
+          # Keep one current interaction/design layer with an explicit cache-busting version.
+          marker = '<script src="registration-fix.js?v=final20260817"></script><script src="interaction-fix.js?v=final20260817"></script>'
           if marker not in s:
               s = s.replace('</body>', marker + '</body>')
           p.write_text(s)
@@ -43,5 +42,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git diff --cached --quiet || git commit -m 'Fix published script loading and remove car photo loader'
+          git diff --cached --quiet || git commit -m 'Publish final dashboard design and interactions'
           git push origin HEAD:gh-pages
