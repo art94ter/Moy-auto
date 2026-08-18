@@ -25,6 +25,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
+      - name: Inject premium glass UI
+        run: sed -i 's#</head>#<link rel="stylesheet" href="premium.css?v=3"></head>#' index.html
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
