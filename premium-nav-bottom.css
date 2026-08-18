@@ -1,0 +1,33 @@
+/* MY AUTO — move the single Главная / ТО / Топливо / Шины / Данные bar to the bottom */
+body #homeNav{
+  position:fixed!important;
+  left:50%!important;
+  bottom:max(10px,env(safe-area-inset-bottom))!important;
+  transform:translateX(-50%)!important;
+  width:calc(100vw - 20px)!important;
+  max-width:790px!important;
+  height:68px!important;
+  margin:0!important;
+  padding:4px!important;
+  z-index:9001!important;
+  border-radius:24px!important;
+  border:1px solid rgba(255,255,255,.20)!important;
+  background:linear-gradient(145deg,rgba(23,28,36,.94),rgba(8,11,14,.94))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.12),0 18px 60px rgba(0,0,0,.65)!important;
+  backdrop-filter:blur(28px) saturate(170%)!important;
+  -webkit-backdrop-filter:blur(28px) saturate(170%)!important;
+}
+body #homeNav button{
+  color:#d2cdc5!important;
+  -webkit-text-fill-color:#d2cdc5!important;
+  border-radius:19px!important;
+}
+body #homeNav button.active{
+  color:#f4cf88!important;
+  -webkit-text-fill-color:#f4cf88!important;
+  background:linear-gradient(145deg,rgba(216,177,109,.22),rgba(216,177,109,.07))!important;
+  border-color:rgba(216,177,109,.48)!important;
+}
+body #bottomNav{display:none!important}
+body main{padding-bottom:96px!important}
+@media(min-width:601px){body #homeNav{height:72px!important}body main{padding-bottom:110px!important}}
