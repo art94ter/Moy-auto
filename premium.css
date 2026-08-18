@@ -5,3 +5,9 @@
 /* Back button: clickable above glass layers and routed through the real home navigation. */
 .moy-back{position:relative!important;z-index:100!important;pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation!important;-webkit-user-select:none!important;user-select:none!important}
 .moy-back *{pointer-events:none!important}
+/* Quick actions: icons sit above text with a clean premium vertical rhythm. */
+.quick{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:flex-start!important;position:relative!important;padding:16px!important}
+.quick .icon{flex:0 0 46px!important;width:46px!important;height:46px!important;margin:0!important;display:grid!important;place-items:center!important}
+.quick strong{margin-top:11px!important;line-height:1.12!important;max-width:calc(100% - 4px)!important}
+.quick small{margin-top:5px!important;line-height:1.28!important;max-width:calc(100% - 4px)!important}
+@media(max-width:600px){.quick{padding:12px!important}.quick .icon{flex-basis:42px!important;width:42px!important;height:42px!important}.quick strong{margin-top:9px!important;line-height:1.1!important;font-size:13px!important}.quick small{margin-top:4px!important;line-height:1.25!important;font-size:10px!important}}
