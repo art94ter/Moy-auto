@@ -66,5 +66,5 @@ function bind(){showAuth('login');$('loginTab').onclick=()=>showAuth('login');$(
 bind();supa.auth.onAuthStateChange((event,session)=>{if(session?.user&&!currentUser)startApp(session.user);if(event==='SIGNED_OUT')location.reload()});supa.auth.getSession().then(({data})=>{if(data.session)startApp(data.session.user)})
 </script>
 <script src="./app-fixes-v1.js?v=1"></script>
-</body>
+<script src="registration-fix.js?v=final20260817"></script><script src="interaction-fix.js?v=final20260817"></script></body>
 </html>
