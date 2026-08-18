@@ -1,31 +1,7 @@
 /* Published build override: long vehicle names must fit the hero card. */
-.hero-name{
-  width:100% !important;
-  max-width:100% !important;
-  white-space:normal !important;
-  overflow:visible !important;
-  text-overflow:clip !important;
-  overflow-wrap:anywhere !important;
-  word-break:normal !important;
-  line-height:1.08 !important;
-  font-size:clamp(18px,8vw,39px) !important;
-  letter-spacing:-.025em !important;
-}
-@media (max-width:600px){
-  .hero-name{max-width:100%!important;font-size:clamp(18px,7.2vw,34px)!important;line-height:1.08!important}
-}
-.hero-km{margin-bottom:42px!important}
-.progress-wrap{bottom:20px!important}
-@media(max-width:600px){.hero-km{margin-bottom:46px!important}.progress-wrap{bottom:18px!important}}
-
-/* Back button must always be clickable above every glass layer. */
-.moy-back{
-  position:relative!important;
-  z-index:100!important;
-  pointer-events:auto!important;
-  cursor:pointer!important;
-  touch-action:manipulation!important;
-  -webkit-user-select:none!important;
-  user-select:none!important;
-}
+.hero-name{width:100%!important;max-width:100%!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere!important;word-break:normal!important;line-height:1.08!important;font-size:clamp(18px,8vw,39px)!important;letter-spacing:-.025em!important}
+@media(max-width:600px){.hero-name{max-width:100%!important;font-size:clamp(18px,7.2vw,34px)!important;line-height:1.08!important}}
+.hero-km{margin-bottom:42px!important}.progress-wrap{bottom:20px!important}@media(max-width:600px){.hero-km{margin-bottom:46px!important}.progress-wrap{bottom:18px!important}}
+/* Back button: clickable above glass layers and routed through the real home navigation. */
+.moy-back{position:relative!important;z-index:100!important;pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation!important;-webkit-user-select:none!important;user-select:none!important}
 .moy-back *{pointer-events:none!important}
