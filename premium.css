@@ -1,0 +1,20 @@
+/* Published build override: long vehicle names must fit the hero card. */
+.hero-name{
+  width:100% !important;
+  max-width:100% !important;
+  white-space:normal !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  overflow-wrap:anywhere !important;
+  word-break:normal !important;
+  line-height:1.08 !important;
+  font-size:clamp(18px,8vw,39px) !important;
+  letter-spacing:-.025em !important;
+}
+@media (max-width:600px){
+  .hero-name{
+    max-width:100% !important;
+    font-size:clamp(18px,7.2vw,34px) !important;
+    line-height:1.08 !important;
+  }
+}
