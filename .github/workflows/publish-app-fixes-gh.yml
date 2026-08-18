@@ -28,15 +28,16 @@ jobs:
           from pathlib import Path
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
-          tag='<script src="./app-fixes-v1.js?v=1"></script>'
+          s=s.replace('./app-fixes-v1.js?v=1','./app-fixes-v1.js?v=5')
+          tag='<script src="./app-fixes-v1.js?v=5"></script>'
           if tag not in s:
               s=s.replace('</body>',tag+'\n</body>')
-              p.write_text(s,encoding='utf-8')
+          p.write_text(s,encoding='utf-8')
           PY
       - name: Commit published fix
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html app-fixes-v1.js
-          git diff --cached --quiet || git commit -m 'Publish home swipe and photo fixes'
+          git diff --cached --quiet || git commit -m 'Publish reference premium design'
           git push origin gh-pages
