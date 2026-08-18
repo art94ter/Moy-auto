@@ -18,3 +18,19 @@
     line-height:1.08 !important;
   }
 }
+
+/* Premium spacing inside the hero: mileage and service status must breathe. */
+.hero-km{
+  margin-bottom:42px !important;
+}
+.progress-wrap{
+  bottom:20px !important;
+}
+@media (max-width:600px){
+  .hero-km{
+    margin-bottom:46px !important;
+  }
+  .progress-wrap{
+    bottom:18px !important;
+  }
+}
