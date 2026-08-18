@@ -1,0 +1,43 @@
+name: Fix quick action cards
+on:
+  push:
+    paths-ignore:
+      - '.github/workflows/fix-quick-cards.yml'
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, 'Patch quick action cards') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch quick cards directly in index.html
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          old='.quick{height:160px;padding:17px;text-align:left}'
+          new='.quick{height:168px;padding:14px 14px 12px;text-align:left;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;box-sizing:border-box;overflow:hidden}'
+          s=s.replace(old,new)
+          old='.icon{width:50px;height:50px;border-radius:16px;font-size:24px}'
+          new='.icon{width:42px;height:42px;flex:0 0 42px;margin:0 0 10px;border-radius:14px;font-size:22px;display:grid;place-items:center}'
+          s=s.replace(old,new)
+          old='.quick strong{display:block;font-size:16px;line-height:1.15;margin-top:15px;font-weight:800}'
+          new='.quick strong{display:block;font-size:16px;line-height:1.15;margin:0;font-weight:800}'
+          s=s.replace(old,new)
+          old='.quick small{display:block;font-size:12px;line-height:1.4;color:var(--muted);margin-top:7px}'
+          new='.quick small{display:block;font-size:12px;line-height:1.3;color:var(--muted);margin-top:5px;max-width:100%}'
+          s=s.replace(old,new)
+          old='.quick{height:145px;padding:13px}.quick strong{font-size:14px}.quick small{font-size:10px}'
+          new='.quick{height:151px;padding:12px}.quick strong{font-size:14px;margin:0}.quick small{font-size:10px;margin-top:4px}'
+          s=s.replace(old,new)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit patched index
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Patch quick action cards'
+          git push
