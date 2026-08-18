@@ -1,0 +1,58 @@
+name: Apply premium UI fix
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '.github/workflows/apply-premium-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  premium-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Apply final mobile premium styling
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('premium.css')
+          s = p.read_text()
+          marker = '/* FINAL-MOBILE-PREMIUM-V2 */'
+          if marker in s:
+              raise SystemExit(0)
+          fix = r'''/* FINAL-MOBILE-PREMIUM-V2 */
+          @media (max-width:600px){
+            main{padding:0 22px 112px!important;max-width:none!important}
+            .hero{height:285px!important;padding:25px 30px!important;border-radius:30px!important;position:relative!important;overflow:hidden!important;background-position:center right,center,center!important;background-size:55% auto,auto,auto!important;background-blend-mode:normal,normal,normal!important}
+            /* Soft glass fades hide the hard rectangular edge of the car artwork. */
+            .hero:before{content:""!important;position:absolute!important;inset:0!important;width:auto!important;height:auto!important;right:auto!important;top:auto!important;border:0!important;border-radius:30px!important;z-index:1!important;pointer-events:none!important;background:linear-gradient(90deg,#0a0d12 0%,rgba(10,13,18,.88) 22%,rgba(10,13,18,.28) 46%,transparent 66%),linear-gradient(180deg,#0a0d12 0%,rgba(10,13,18,.12) 18%,transparent 55%,#0a0d12 100%)!important;box-shadow:none!important}
+            .hero:after{content:""!important;position:absolute!important;pointer-events:none!important;width:520px!important;height:330px!important;right:-145px!important;top:-90px!important;border-radius:50%!important;border:1px solid rgba(244,207,136,.30)!important;box-shadow:0 0 0 28px rgba(244,207,136,.045),0 0 0 60px rgba(244,207,136,.025)!important;z-index:1!important}
+            .kicker,.hero-name,.hero-meta,.hero-km,.progress-wrap{z-index:3!important}
+            .hero-name{font-size:34px!important;max-width:62%!important}
+            .hero-meta{font-size:15px!important}
+            .hero-km{font-size:48px!important;margin-top:36px!important}
+            .progress-wrap{left:30px!important;right:30px!important;bottom:25px!important}
+            .home-nav{height:72px!important;margin:18px 0 2px!important;border-radius:24px!important;background:linear-gradient(145deg,rgba(29,34,40,.72),rgba(7,10,14,.52))!important;backdrop-filter:blur(34px) saturate(155%)!important;-webkit-backdrop-filter:blur(34px) saturate(155%)!important}
+            .quick-grid,.stats-grid{gap:8px!important}
+            .quick{height:145px!important;border-radius:21px!important}
+            .stat-card{height:145px!important;border-radius:21px!important}
+            .events{margin-top:30px!important}
+            #bottomNav{height:68px!important;width:calc(100vw - 20px)!important;border-radius:24px!important;background:linear-gradient(145deg,rgba(29,34,40,.82),rgba(7,10,14,.62))!important;backdrop-filter:blur(34px) saturate(155%)!important;-webkit-backdrop-filter:blur(34px) saturate(155%)!important;box-shadow:inset 0 1px rgba(255,255,255,.14),0 18px 55px rgba(0,0,0,.72)!important}
+          }
+          '''
+          p.write_text(s + '\n' + fix)
+          PY
+      - name: Commit generated CSS
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add premium.css
+          git diff --cached --quiet && exit 0
+          git commit -m "Apply final premium mobile UI"
+          git push
